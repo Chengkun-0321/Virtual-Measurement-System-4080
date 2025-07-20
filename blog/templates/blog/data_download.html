@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>資料下載頁面</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="d-flex flex-column min-vh-100" style="font-family: '標楷體';">
+    {% include "blog/_navbar.html" %}
+    <div class="container">
+        <br>
+        <!-- 頁面標題 -->
+        <h2 class="mb-4 text-center">📊 資料下載頁面</h2>
+
+        <!-- 伺服器 連線提示 -->
+        <div id="ssh-status" class="text-center mb-3">
+            <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
+        </div>
+
+        <!-- 返回首頁按鈕 -->
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-secondary btn-lg">🔙 返回首頁</a>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const sshStatus = document.getElementById('ssh-status');
+            const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
+
+            // WebSocket 連線成功
+            socket.onopen = function() {
+                console.log("✅ WebSocket 已連線");
+                sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
+            };
+        });
+    </script>
+</body>
+</html>

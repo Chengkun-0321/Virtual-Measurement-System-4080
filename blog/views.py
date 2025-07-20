@@ -90,8 +90,8 @@ def get_result_image(request, folder, filename):
         return FileResponse(open(file_path, "rb"), content_type="image/png")
     return JsonResponse({"error": "找不到圖片"}, status=404)
 
-def show_results(request):
-    return render(request, 'blog/results.html')  # 顯示結果頁（也可以先空白）
+def data_download(request):
+    return render(request, 'blog/data_download.html')  # 顯示結果頁（也可以先空白）
 
 def ping_test(request):
     if request.method == 'POST':
