@@ -75,17 +75,24 @@
                     </form>
                 </div>
             </div>
+
+            <!-- 右側最佳結果 -->
             <div class="col-md-6 text-center" style="flex: 0 0 40%;">
-                <h5>混淆矩陣</h5>
-                <img id="confusion-matrix" src="" class="img-fluid rounded border shadow-sm" alt="" style="width: 96.5%;">
+                <div class="card p-4 shadow-sm fs-5 h-100 text-center">
+                    <h5 class="card-title">🔍 混淆矩陣</h5>
+                    <p id="best-result" class="fs-5">
+                        <img id="confusion-matrix" src="" alt="" style="width: 90.5%;">
+                        <span id="confusion-hint" class="text-muted">尚未開始測試...</span>
+                    </p>
+                </div>
             </div>
         </div>
         
+        <!-- 真實 vs 預測圖 -->
         <br>
-        <div class="text-center">
-            <h5>真實 vs 預測圖</h5>
-            <img id="ground-truth" src="" class="img-fluid rounded border shadow-sm" alt="" style="width: 90%;">
-        </div>
+        <h5 class="card-title text-center">📈 真實 vs 預測圖</h5>
+        <img id="ground-truth" src=""  alt="" style="width: 100%;">
+        <p id="groundtruth-hint" class="text-muted text-center">尚未開始測試...</p>
 
         <!-- 執行結果區塊（改為 textarea 即時顯示）-->
         <div class="card mt-5 shadow-sm" style="display:none;">
@@ -133,6 +140,8 @@
                     const timestamp = new Date().getTime(); // 防止 cache
                     document.getElementById('confusion-matrix').src = `/api/get_image/${checkpointPath}/混淆矩陣.png?t=${timestamp}`;
                     document.getElementById('ground-truth').src = `/api/get_image/${checkpointPath}/ground_truth.png?t=${timestamp}`;
+                    document.getElementById('confusion-hint').style.display = 'none';
+                    document.getElementById('groundtruth-hint').style.display = 'none';
                 }
             };
 
@@ -151,11 +160,6 @@
                     boundary_upper: formData.get('boundary_upper'),
                     boundary_lower: formData.get('boundary_lower')
                 };
-
-                // 鎖定按鈕防止重複送出
-                runTestButton.disabled = true;
-                runTestButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 執行中...';
-                outputArea.value = ""; // 清空之前的輸出
 
                 // 鎖定按鈕防止重複送出
                 runTestButton.disabled = true;

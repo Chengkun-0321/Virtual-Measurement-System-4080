@@ -86,6 +86,7 @@
 
         <!-- 即時訓練曲線 -->
         <br>
+        <h5 class="card-title text-center">📈 即時訓練曲線</h5>
         <canvas id="trainingChart" height="100" class="mb-4"></canvas>
         
 
@@ -165,13 +166,6 @@
             socket.onmessage = function(event) {
                 const output = document.getElementById('output');
                 const data = event.data;
-
-                // 顯示 顯示伺服器成功/失敗
-                if (data.includes("SSH connected")) {
-                    sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 SSH 已連線</span>`;
-                } else if (data.includes("SSH failed") || data.includes("SSH connection error")) {
-                    sshStatus.innerHTML = `<span class="text-danger fw-bold">🔴 SSH 連線失敗</span>`;
-                }
 
                 // 更新訓練曲線（分開解析 loss 與 val_loss）
                 window.allEpochs = window.allEpochs || [];
