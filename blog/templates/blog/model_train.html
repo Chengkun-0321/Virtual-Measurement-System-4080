@@ -14,7 +14,9 @@
         <h2 class="mb-4 text-center">🚀 模型訓練頁面</h2>
 
         <!-- 伺服器 連線提示 -->
-        <div id="ssh-status" class="text-center mb-3"></div>
+        <div id="ssh-status" class="text-center mb-3">
+            <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
+        </div>
 
         <!-- 表單區塊包在 Bootstrap 卡片中 -->
         <div class="row align-items-stretch">
@@ -156,7 +158,7 @@
             // 當 WebSocket 連線成功
             socket.onopen = function() {
                 console.log("WebSocket 已連線");
-                sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 WebSocket 已就緒</span>`;
+                sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
             };
 
             // 從後端收到訊息
