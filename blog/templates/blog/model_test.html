@@ -88,7 +88,7 @@
         </div>
 
         <!-- 執行結果區塊（改為 textarea 即時顯示）-->
-        <div class="card mt-5 shadow-sm" style="display:none;">
+        <div class="card mt-5 shadow-sm" >
             <div class="card-header">
                 📤 執行結果
             </div>
@@ -156,6 +156,21 @@
                 runTestButton.disabled = true;
                 runTestButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 執行中...';
                 outputArea.value = ""; // 清空之前的輸出
+
+                // 鎖定按鈕防止重複送出
+                runTestButton.disabled = true;
+                runTestButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 執行中...';
+                outputArea.value = ""; // 清空之前的輸出
+
+                if (socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify(data));  // ✅ 發送資料給後端
+                    console.log("已發送資料:", data);
+                } else {
+                    console.error("WebSocket 尚未連線");
+                    alert("WebSocket 尚未連線，請稍後再試");
+                    runTestButton.disabled = false;
+                    runTestButton.innerHTML = '▶️ 執行模型測試';
+                }
             });
         });
     </script>
