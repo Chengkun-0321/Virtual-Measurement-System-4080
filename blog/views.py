@@ -8,7 +8,7 @@ from datetime import datetime
 
 # Django 模組
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import localtime
 
@@ -71,14 +71,24 @@ def run_mamba_local(request):
 
 # 測試模型畫面
 def test_model(request):
-    # 掃描 static/plt 資料夾取得資料夾名稱列表
-    static_dir = os.path.join('static', 'plt')
+    # 掃描 checkpoints 資料夾取得權重名稱
+    weights_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/checkpoints")
     try:
-        checkpoint_folders = [name for name in os.listdir(static_dir) if os.path.isdir(os.path.join(static_dir, name))]
+        checkpoint_folders = [
+            f.replace(".h5", "") for f in os.listdir(weights_dir) if f.endswith(".h5")
+        ]
     except FileNotFoundError:
         checkpoint_folders = []
 
     return render(request, 'blog/model_test.html', {'checkpoint_folders': checkpoint_folders})
+
+def get_result_image(request, folder, filename):
+    base_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/Training_History_Plot"
+    file_path = os.path.join(base_dir, folder, filename)
+    print("請求圖片路徑:", file_path)
+    if os.path.exists(file_path):
+        return FileResponse(open(file_path, "rb"), content_type="image/png")
+    return JsonResponse({"error": "找不到圖片"}, status=404)
 
 def show_results(request):
     return render(request, 'blog/results.html')  # 顯示結果頁（也可以先空白）

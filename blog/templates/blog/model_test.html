@@ -2,8 +2,9 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>模型測試頁面</title>
+    <title>模型訓練頁面</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="d-flex flex-column min-vh-100" style="font-family: '標楷體';">
     {% include "blog/_navbar.html" %}
@@ -11,6 +12,11 @@
         <br>
         <!-- 頁面標題 -->
         <h2 class="mb-4 text-center">🧪 模型測試頁面</h2>
+
+        <!-- 伺服器 連線提示 -->
+        <div id="ssh-status" class="text-center mb-3">
+            <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
+        </div>
 
         <!-- 表單與混淆矩陣區塊 -->
         <div class="row">
@@ -81,8 +87,8 @@
             <img id="ground-truth" src="" class="img-fluid rounded border shadow-sm" alt="" style="width: 90%;">
         </div>
 
-        <!-- 執行結果區塊 -->
-        <div class="card mt-5 shadow-sm" id="output-card" style="display:none;">
+        <!-- 執行結果區塊（改為 textarea 即時顯示）-->
+        <div class="card mt-5 shadow-sm" style="display:none;">
             <div class="card-header">
                 📤 執行結果
             </div>
@@ -96,68 +102,44 @@
             <a href="/" class="btn btn-secondary btn-lg">🔙 返回首頁</a>
         </div>
     </div>
-
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const runTestButton = document.getElementById('run-test');
             const sshStatus = document.getElementById('ssh-status');
             const outputArea = document.getElementById('output');
-            const resultCard = outputArea.closest('.card');
-            
-            // 頁面載入時與伺服器連線動作
-            const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
-            socket.onopen = function() {
-                console.log("WebSocket 已連線，正在嘗試 SSH...");
-                sshStatus.innerHTML = `<span class="text-warning fw-bold">🟡 伺服器 正在連接中...</span>`;
+            const confusionMatrixImg = document.getElementById('confusion-matrix');
+            const groundTruthImg = document.getElementById('ground-truth');
 
-                socket.send(JSON.stringify({
-                    action: 'ssh_connect',
-                    hostname: "{{ request.session.ssh_info.hostname }}",
-                    port: "{{ request.session.ssh_info.port }}",
-                    username: "{{ request.session.ssh_info.username }}",
-                    password: "{{ request.session.ssh_info.password }}"
-                }));
+            const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
+
+            // WebSocket 連線成功
+            socket.onopen = function() {
+                console.log("✅ WebSocket 已連線");
+                sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
             };
 
+            // WebSocket 收到後端訊息
             socket.onmessage = function(event) {
-                const data = event.data;
+                console.log("後端回應:", event.data);
+                outputArea.value += event.data + "\n";
 
-                // 顯示 顯示伺服器成功/失敗
-                if (data.includes("SSH connected")) {
-                    sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
-                } else if (data.includes("SSH failed") || data.includes("SSH connection error")) {
-                    sshStatus.innerHTML = `<span class="text-danger fw-bold">🔴 伺服器 連線失敗</span>`;
-                }
-
-                // 顯示結果區塊（第一次時）
-                /*
-                if (resultCard.style.display === 'none') {
-                    resultCard.style.display = 'block';
-                }
-                */
-
-                // 顯示測試輸出內容
-                outputArea.value += data + "\n";
-                outputArea.scrollTop = outputArea.scrollHeight;
-
-                if (data.includes("finsh test!")) {
+                // 檢查是否結束測試
+                if (outputArea.value.includes("finsh test!")) {
+                    console.log("✅ 收到 finsh test!，更新結果圖片");
                     runTestButton.disabled = false;
                     runTestButton.innerHTML = '▶️ 執行模型測試';
 
-                    // 顯示測試結果圖片 根據權重檔名稱選擇資料夾
                     const checkpointPath = document.querySelector('select[name="checkpoint_path"]').value;
-                    const folderName = checkpointPath;
-                    document.getElementById('confusion-matrix').src = `/static/plt/${folderName}/混淆矩陣.png`;
-                    document.getElementById('ground-truth').src = `/static/plt/${folderName}/ground_truth.png`;
-                    document.getElementById('result-images').style.display = 'flex';
-                } 
+                    const timestamp = new Date().getTime(); // 防止 cache
+                    document.getElementById('confusion-matrix').src = `/api/get_image/${checkpointPath}/混淆矩陣.png?t=${timestamp}`;
+                    document.getElementById('ground-truth').src = `/api/get_image/${checkpointPath}/ground_truth.png?t=${timestamp}`;
+                }
             };
 
-            // 執行按鈕動作
+            // 按鈕動作
             runTestButton.addEventListener('click', function() {
-                runTestButton.disabled = true;
-                runTestButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 執行中...';
-                // 取得表單資料 打包成json檔到後端
+                console.log("按下執行模型測試按鈕");
+
                 const form = document.querySelector('form');
                 const formData = new FormData(form);
                 const data = {
@@ -170,8 +152,10 @@
                     boundary_lower: formData.get('boundary_lower')
                 };
 
+                // 鎖定按鈕防止重複送出
+                runTestButton.disabled = true;
+                runTestButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 執行中...';
                 outputArea.value = ""; // 清空之前的輸出
-                socket.send(JSON.stringify(data));
             });
         });
     </script>
