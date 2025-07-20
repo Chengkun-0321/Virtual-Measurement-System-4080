@@ -1,33 +1,13 @@
-# Python 標準函式庫
 import os
 import re
 import time
 import json
 import subprocess
 from datetime import datetime
-
-# Django 模組
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import localtime
-
-def execute_train_command(model_dir, venv_dir, py_file, dataset):
-    cmd = (
-        f"cd {model_dir} && "
-        f"source ~/anaconda3/etc/profile.d/conda.sh && "
-        f"conda activate {venv_dir} && "
-        f"python {py_file} "
-        f"--train_x './training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
-        f"--train_y './training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
-        f"--valid_x './validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
-        f"--valid_y './validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
-        "--epochs 2 --batch_size 129 --lr 0.0001 --validation_freq 100"
-    )
-
-    # 執行指令並回傳輸出
-    result = subprocess.run(cmd, shell=True, executable="/bin/bash", capture_output=True, text=True)
-    return result.stdout + result.stderr
 
 # 首頁畫面
 @csrf_exempt
@@ -41,7 +21,6 @@ def home(request):
         request.session['password'] = request.POST.get('password', '')
         return render(request, 'home.html')
 
-    
     # 讀取 session 並傳到 template
     context = {
         'hostname': request.session.get('hostname', ''),
@@ -49,49 +28,7 @@ def home(request):
         'username': request.session.get('username', ''),
         'password': request.session.get('password', '')
     }
-    return render(request, 'blog/home.html', context)
-    
-
-@csrf_exempt
-def run_mamba_local(request):
-    if request.method == "POST":
-        model = request.POST['model']
-        dataset = request.POST['dataset']
-
-        if model == "Mamba":
-            model_dir = os.path.expanduser("~/Virtual_Measurement_System_model/HMamba_code")
-            venv_dir = "mamba"
-            py_file = "HMambaTrain_ov.py"
-        else:
-            return render(request, 'blog/model_train.html', {'output': "❌ 無效的模型選擇"})
-
-        output = execute_train_command(model_dir, venv_dir, py_file, dataset)
-        return render(request, 'blog/model_train.html', {'output': output})
-    return render(request, 'blog/model_train.html')
-
-# 測試模型畫面
-def test_model(request):
-    # 掃描 checkpoints 資料夾取得權重名稱
-    weights_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/checkpoints")
-    try:
-        checkpoint_folders = [
-            f.replace(".h5", "") for f in os.listdir(weights_dir) if f.endswith(".h5")
-        ]
-    except FileNotFoundError:
-        checkpoint_folders = []
-
-    return render(request, 'blog/model_test.html', {'checkpoint_folders': checkpoint_folders})
-
-def get_result_image(request, folder, filename):
-    base_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/Training_History_Plot"
-    file_path = os.path.join(base_dir, folder, filename)
-    print("請求圖片路徑:", file_path)
-    if os.path.exists(file_path):
-        return FileResponse(open(file_path, "rb"), content_type="image/png")
-    return JsonResponse({"error": "找不到圖片"}, status=404)
-
-def data_download(request):
-    return render(request, 'blog/data_download.html')  # 顯示結果頁（也可以先空白）
+    return render(request, 'blog/home.html', context)  
 
 def ping_test(request):
     if request.method == 'POST':
@@ -125,25 +62,82 @@ def ping_test(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': f'❌ 連線失敗：{str(e)}'})
 
-  
-# 模型管理畫面
+# ----- 訓練模型頁面 -----
+@csrf_exempt
+def run_mamba_local(request):
+    if request.method == "POST":
+        model = request.POST['model']
+        dataset = request.POST['dataset']
+
+        if model == "Mamba":
+            model_dir = os.path.expanduser("~/Virtual_Measurement_System_model/HMamba_code")
+            venv_dir = "mamba"
+            py_file = "HMambaTrain_ov.py"
+        else:
+            return render(request, 'blog/model_train.html', {'output': "❌ 無效的模型選擇"})
+
+        output = execute_train_command(model_dir, venv_dir, py_file, dataset)
+        return render(request, 'blog/model_train.html', {'output': output})
+    return render(request, 'blog/model_train.html')
+
+# 執行訓練指令是設定
+def execute_train_command(model_dir, venv_dir, py_file, dataset):
+    cmd = (
+        f"cd {model_dir} && "
+        f"source ~/anaconda3/etc/profile.d/conda.sh && "
+        f"conda activate {venv_dir} && "
+        f"python {py_file} "
+        f"--train_x './training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
+        f"--train_y './training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
+        f"--valid_x './validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
+        f"--valid_y './validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
+        "--epochs 2 --batch_size 129 --lr 0.0001 --validation_freq 100"
+    )
+
+    # 執行指令並回傳輸出
+    result = subprocess.run(cmd, shell=True, executable="/bin/bash", capture_output=True, text=True)
+    return result.stdout + result.stderr
+
+
+# ----- 測試模型畫面 -----
+def test_model(request):
+    # 掃描 checkpoints 資料夾取得權重名稱
+    weights_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/checkpoints")
+    try:
+        checkpoint_folders = [
+            f.replace(".h5", "") for f in os.listdir(weights_dir) if f.endswith(".h5")
+        ]
+    except FileNotFoundError:
+        checkpoint_folders = []
+
+    return render(request, 'blog/model_test.html', {'checkpoint_folders': checkpoint_folders})
+
+# 取得測試結果圖片
+def get_result_image(request, folder, filename):
+    base_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/Training_History_Plot"
+    file_path = os.path.join(base_dir, folder, filename)
+    print("請求圖片路徑:", file_path)
+    if os.path.exists(file_path):
+        return FileResponse(open(file_path, "rb"), content_type="image/png")
+    return JsonResponse({"error": "找不到圖片"}, status=404)
+
+
+# ----- 模型管理畫面 -----
 def manage_models(request):
     return render(request, 'blog/model_manage.html')
 
 # 列出本機模型檔案清單
 def list_checkpoint(request):
     weights_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/checkpoints")
-
     try:
         weights = []
         for fname in os.listdir(weights_dir):
             if fname.endswith(".h5"):
+                # 回傳 json 格式調整
                 full_path = os.path.join(weights_dir, fname)
                 stat_info = os.stat(full_path)
                 file_size = f"{stat_info.st_size / (1024 * 1024):.2f} MB"
                 mtime = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y/%m/%d %H:%M:%S")
-
-                
                 mse_match = re.search(r"valmse_([\d.]+)", fname)
                 mse = float(mse_match.group(1).rstrip('.')) if mse_match else None
 
@@ -218,3 +212,8 @@ def rename_checkpoint(request):
             return JsonResponse({"status": "error", "error": str(e)})
 
     return JsonResponse({"status": "error", "error": "無效的請求"})
+
+
+# ----- 資料下載畫面 -----
+def data_download(request):
+    return render(request, 'blog/data_download.html')
