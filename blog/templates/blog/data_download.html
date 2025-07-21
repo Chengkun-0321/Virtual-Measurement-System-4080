@@ -10,11 +10,27 @@
     <div class="container">
         <br>
         <!-- 頁面標題 -->
-        <h2 class="mb-4 text-center">📊 資料下載頁面</h2>
+        <h2 class="mb-4 text-center">⬇️ 資料下載頁面</h2>
 
         <!-- 伺服器 連線提示 -->
         <div id="ssh-status" class="text-center mb-3">
             <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
+        </div>
+
+        <div class="mb-4 text-center">
+            <label for="modelName" class="form-label fs-5">請輸入模型名稱（不含副檔名 .h5）</label>
+            <input type="text" id="modelName" class="form-control text-center mx-auto" style="max-width: 400px;" placeholder="例如：mymodel_01">
+        </div>
+
+        <!-- 各種檔案下載按鈕 -->
+        <div class="text-center">
+            <button onclick="download('model')" class="btn btn-primary m-2">模型檔案</button>
+            <button onclick="download('confusion')" class="btn btn-outline-dark m-2">混淆矩陣圖</button>
+            <button onclick="download('ground_truth')" class="btn btn-outline-secondary m-2">真實 vs 預測圖</button>
+            <button onclick="download('loss')" class="btn btn-outline-info m-2">Loss 曲線</button>
+            <button onclick="download('mae')" class="btn btn-outline-info m-2">MAE 曲線</button>
+            <button onclick="download('mape')" class="btn btn-outline-info m-2">MAPE 曲線</button>
+            <button onclick="download('mse')" class="btn btn-outline-info m-2">MSE 曲線</button>
         </div>
 
         <!-- 返回首頁按鈕 -->
@@ -33,6 +49,16 @@
                 sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
             };
         });
+
+        function download(type) {
+            const modelName = document.getElementById("modelName").value.trim();
+            if (!modelName) {
+                alert("請輸入模型名稱！");
+                return;
+            }
+            const url = `/download/file/${type}/${modelName}/`;
+            window.location.href = url;
+        }
     </script>
 </body>
 </html>

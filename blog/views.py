@@ -5,7 +5,7 @@ import json
 import subprocess
 from datetime import datetime
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse, FileResponse
+from django.http import JsonResponse, HttpResponse, FileResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import localtime
 
@@ -215,5 +215,34 @@ def rename_checkpoint(request):
 
 
 # ----- 資料下載畫面 -----
+# 模型和圖像資料夾
+MODEL_DIR = "/home/vms/Virtual_Measurement_System_model/Model_code/checkpoints/"
+PLOT_DIR = "/home/vms/Virtual_Measurement_System_model/Model_code/Training_History_Plot/"
+
 def data_download(request):
     return render(request, 'blog/data_download.html')
+
+def download_file(request, file_type, model_name):
+    base_path = "/home/vms/Virtual_Measurement_System_model/Model_code"
+
+    # 對應不同檔案類型的子路徑
+    file_map = {
+        "model": f"checkpoints/{model_name}.h5",
+        "confusion": f"Training_History_Plot/{model_name}/混淆矩陣.png",
+        "ground_truth": f"Training_History_Plot/{model_name}/ground_truth.png",
+        "loss": f"Training_History_Plot/{model_name}/training_loss_curve.png",
+        "mae": f"Training_History_Plot/{model_name}/training_mae_curve.png",
+        "mape": f"Training_History_Plot/{model_name}/training_mape_curve.png",
+        "mse": f"Training_History_Plot/{model_name}/training_mse_curve.png"
+    }
+
+    rel_path = file_map.get(file_type)
+    if not rel_path:
+        raise Http404("檔案類型無效")
+
+    file_path = os.path.join(base_path, rel_path)
+
+    if os.path.exists(file_path):
+        return FileResponse(open(file_path, 'rb'), as_attachment=True)
+    else:
+        raise Http404("找不到檔案")

@@ -14,5 +14,6 @@ urlpatterns = [
     path('api/list_checkpoint/', views.list_checkpoint, name='list_checkpoint'),
     path('api/delete_local_weights/', views.delete_local_weights, name='delete_local_weights'),
     path('api/rename_checkpoint/', views.rename_checkpoint, name='rename_checkpoint'),
-    path('data_dl/', views.data_download, name='data'),            # 資料下載頁面
+    path('download/', views.data_download, name='data'),            # 資料下載頁面
+    path('download/file/<str:file_type>/<str:model_name>/', views.download_file, name='download_file'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
