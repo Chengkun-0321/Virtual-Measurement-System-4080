@@ -18,8 +18,10 @@
         </div>
 
         <div class="mb-4 text-center">
-            <label for="modelName" class="form-label fs-5">請輸入模型名稱（不含副檔名 .h5）</label>
-            <input type="text" id="modelName" class="form-control text-center mx-auto" style="max-width: 400px;" placeholder="例如：mymodel_01">
+            <label for="modelSelect" class="form-label fs-5">選擇模型名稱</label>
+            <select id="modelSelect" class="form-select text-center mx-auto" style="max-width: 400px;">
+                <option disabled selected>載入中...</option>
+            </select>
         </div>
 
         <!-- 各種檔案下載按鈕 -->
@@ -39,26 +41,52 @@
         </div>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const sshStatus = document.getElementById('ssh-status');
-            const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
+    document.addEventListener("DOMContentLoaded", function () {
+        const sshStatus = document.getElementById('ssh-status');
+        const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
 
-            // WebSocket 連線成功
-            socket.onopen = function() {
-                console.log("✅ WebSocket 已連線");
-                sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
-            };
-        });
+        socket.onopen = function () {
+            console.log("✅ WebSocket 已連線");
+            sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
+        };
 
-        function download(type) {
-            const modelName = document.getElementById("modelName").value.trim();
-            if (!modelName) {
-                alert("請輸入模型名稱！");
-                return;
-            }
-            const url = `/download/file/${type}/${modelName}/`;
-            window.location.href = url;
+        // 載入模型選單
+        fetch("/api/list_model_names/")
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById("modelSelect");
+                select.innerHTML = ""; // 清空原本的 option
+                if (data.models && data.models.length > 0) {
+                    data.models.forEach(name => {
+                        const option = document.createElement("option");
+                        option.value = name;
+                        option.textContent = name;
+                        select.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement("option");
+                    option.textContent = "⚠️ 找不到模型檔案";
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+            })
+            .catch(err => {
+                console.error("讀取模型清單失敗", err);
+                const select = document.getElementById("modelSelect");
+                select.innerHTML = `<option disabled>🚫 載入失敗</option>`;
+            });
+    });
+
+    function download(type) {
+        const modelSelect = document.getElementById("modelSelect");
+        const modelName = modelSelect.value;
+        if (!modelName) {
+            alert("請選擇模型名稱！");
+            return;
         }
-    </script>
+        const url = `/download/file/${type}/${modelName}/`;
+        window.location.href = url;
+    }
+</script>
 </body>
 </html>

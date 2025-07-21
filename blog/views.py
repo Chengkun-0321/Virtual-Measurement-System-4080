@@ -7,6 +7,7 @@ from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse, FileResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
 from django.utils.timezone import localtime
 
 # 首頁畫面
@@ -216,9 +217,21 @@ def rename_checkpoint(request):
 
 # ----- 資料下載畫面 -----
 # 模型和圖像資料夾
-MODEL_DIR = "/home/vms/Virtual_Measurement_System_model/Model_code/checkpoints/"
-PLOT_DIR = "/home/vms/Virtual_Measurement_System_model/Model_code/Training_History_Plot/"
+model_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/checkpoints/"
 
+@require_GET
+def list_model_names(request):
+    try:
+        models = [
+            f.replace(".h5", "")
+            for f in os.listdir(model_dir)
+            if f.endswith(".h5")
+        ]
+        models.sort()
+        return JsonResponse({"models": models})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
 def data_download(request):
     return render(request, 'blog/data_download.html')
 
