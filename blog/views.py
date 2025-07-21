@@ -214,6 +214,13 @@ def rename_checkpoint(request):
 
     return JsonResponse({"status": "error", "error": "無效的請求"})
 
+# ----- 部署模型畫面 -----
+def deploy_model(request):
+    return render(request, "blog/deploy_model.html")
+
+# ----- 啟動模型畫面 -----
+def run_model(request):
+    return render(request, "blog/run_model.html")
 
 # ----- 資料下載畫面 -----
 # 模型和圖像資料夾
