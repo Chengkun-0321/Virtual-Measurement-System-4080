@@ -64,41 +64,8 @@ def ping_test(request):
             return JsonResponse({'status': 'error', 'message': f'❌ 連線失敗：{str(e)}'})
 
 # ----- 訓練模型頁面 -----
-@csrf_exempt
 def run_mamba_local(request):
-    if request.method == "POST":
-        model = request.POST['model']
-        dataset = request.POST['dataset']
-
-        if model == "Mamba":
-            model_dir = os.path.expanduser("~/Virtual_Measurement_System_model/HMamba_code")
-            venv_dir = "mamba"
-            py_file = "HMambaTrain_ov.py"
-        else:
-            return render(request, 'blog/model_train.html', {'output': "❌ 無效的模型選擇"})
-
-        output = execute_train_command(model_dir, venv_dir, py_file, dataset)
-        return render(request, 'blog/model_train.html', {'output': output})
     return render(request, 'blog/model_train.html')
-
-# 執行訓練指令是設定
-def execute_train_command(model_dir, venv_dir, py_file, dataset):
-    cmd = (
-        f"cd {model_dir} && "
-        f"source ~/anaconda3/etc/profile.d/conda.sh && "
-        f"conda activate {venv_dir} && "
-        f"python {py_file} "
-        f"--train_x './training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
-        f"--train_y './training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
-        f"--valid_x './validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
-        f"--valid_y './validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
-        "--epochs 2 --batch_size 129 --lr 0.0001 --validation_freq 100"
-    )
-
-    # 執行指令並回傳輸出
-    result = subprocess.run(cmd, shell=True, executable="/bin/bash", capture_output=True, text=True)
-    return result.stdout + result.stderr
-
 
 # ----- 測試模型畫面 -----
 def test_model(request):
@@ -121,7 +88,6 @@ def get_result_image(request, folder, filename):
     if os.path.exists(file_path):
         return FileResponse(open(file_path, "rb"), content_type="image/png")
     return JsonResponse({"error": "找不到圖片"}, status=404)
-
 
 # ----- 模型管理畫面 -----
 def manage_models(request):

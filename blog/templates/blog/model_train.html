@@ -191,19 +191,6 @@
                     trainingChart.data.datasets[0].data = window.allLosses.slice(-50);
                 }
 
-                // 解析 val_loss
-                /*
-                let valLossMatch = data.match(/val_loss:\s*([\d.]+)/);
-                if (valLossMatch) {
-                    const valLoss = parseFloat(valLossMatch[1]);
-                    if (window.allValLosses.length < window.allEpochs.length) {
-                        window.allValLosses.push(valLoss);
-                    } else {
-                        window.allValLosses[window.allEpochs.length - 1] = valLoss;
-                    }
-                    trainingChart.data.datasets[1].data = window.allValLosses.slice(-50);
-                }*/
-
                 trainingChart.data.labels = window.allEpochs.slice(-50);
                 trainingChart.update();
 
