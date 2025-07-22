@@ -218,10 +218,6 @@ def rename_checkpoint(request):
 def deploy_model(request):
     return render(request, "blog/deploy_model.html")
 
-# ----- 啟動模型畫面 -----
-def run_model(request):
-    return render(request, "blog/run_model.html")
-
 # ----- 資料下載畫面 -----
 # 模型和圖像資料夾
 model_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/checkpoints/"
