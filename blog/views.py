@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import pytz
 import json
 import subprocess
 from datetime import datetime
@@ -98,13 +99,16 @@ def list_checkpoint(request):
     weights_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/checkpoints")
     try:
         weights = []
+        taiwan_tz = pytz.timezone("Asia/Taipei")  # 台灣時區轉換
+
         for fname in os.listdir(weights_dir):
             if fname.endswith(".h5"):
                 # 回傳 json 格式調整
                 full_path = os.path.join(weights_dir, fname)
                 stat_info = os.stat(full_path)
                 file_size = f"{stat_info.st_size / (1024 * 1024):.2f} MB"
-                mtime = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y/%m/%d %H:%M:%S")
+                taiwan_tz = pytz.timezone("Asia/Taipei")
+                mtime = datetime.fromtimestamp(stat_info.st_mtime, taiwan_tz).strftime("%Y/%m/%d %H:%M:%S")
                 mse_match = re.search(r"valmse_([\d.]+)", fname)
                 mse = float(mse_match.group(1).rstrip('.')) if mse_match else None
 
