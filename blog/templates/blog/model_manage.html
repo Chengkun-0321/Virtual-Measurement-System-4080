@@ -18,6 +18,20 @@
             <span class="text-warning fw-bold">🟡 伺服器 連線中...</span>
         </div>
 
+        <!-- 篩選條件 -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="filter-name" class="form-control" placeholder="🔍 搜尋模型名稱">
+            </div>
+            <div class="col-md-4">
+                <input type="date" id="filter-date" class="form-control" placeholder="📅 建立時間">
+            </div>
+            <div class="col-md-4 d-flex">
+                <input type="number" id="mse-min" class="form-control me-2" placeholder="MSE 最小值">
+                <input type="number" id="mse-max" class="form-control" placeholder="MSE 最大值">
+            </div>
+        </div>
+
         <!-- 權重管理區塊 -->
         <div class="card mt-4 shadow-sm">
             <div class="card-header">
@@ -67,18 +81,38 @@
             const selectAllCheckbox = document.getElementById("select-all");
             const deleteButton = document.getElementById("delete-selected");
 
+            ["filter-name", "filter-date", "mse-min", "mse-max"].forEach(id => {
+                document.getElementById(id).addEventListener("input", loadWeights);
+            });
+
             function loadWeights() {
                 fetch('/api/list_checkpoint/')
                     .then(res => res.json())
                     .then(data => {
                         console.log("載入權重資料:", data); // DEBUG: 看 API 回傳
+
+                        const nameFilter = document.getElementById("filter-name").value.toLowerCase();
+                        const dateFilter = document.getElementById("filter-date").value;
+                        const mseMin = parseFloat(document.getElementById("mse-min").value);
+                        const mseMax = parseFloat(document.getElementById("mse-max").value);
+
+                        // 過濾邏輯
+                        const filtered = data.filter(file => {
+                            let matchName = !nameFilter || file.name.toLowerCase().includes(nameFilter);
+                            let matchDate = !dateFilter || file.date_iso === dateFilter;
+                            let matchMSE = true;
+                            if (!isNaN(mseMin)) matchMSE = file.mse !== null && file.mse >= mseMin;
+                            if (!isNaN(mseMax)) matchMSE = matchMSE && file.mse !== null && file.mse <= mseMax;
+                            return matchName && matchDate && matchMSE;
+                        });
+
                         tableBody.innerHTML = "";
                         if (data.length === 0) {
                             tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">📂 沒有權重檔案</td></tr>';
                             return;
                         }
 
-                        data.forEach(file => {
+                        filtered.forEach(file => {
                             const row = document.createElement("tr");
                             row.innerHTML = `
                                 <td><input type="checkbox" class="file-checkbox" value="${file.name}"></td>

@@ -109,8 +109,11 @@ def list_checkpoint(request):
                 full_path = os.path.join(weights_dir, fname)
                 stat_info = os.stat(full_path)
                 file_size = f"{stat_info.st_size / (1024 * 1024):.2f} MB"
-                taiwan_tz = pytz.timezone("Asia/Taipei")
-                mtime = datetime.fromtimestamp(stat_info.st_mtime, taiwan_tz).strftime("%Y/%m/%d %H:%M:%S")
+
+                taiwan_tz = pytz.timezone("Asia/Taipei")  # 時區轉換
+                dt = datetime.fromtimestamp(stat_info.st_mtime, taiwan_tz)
+                mtime = dt.strftime("%Y/%m/%d %H:%M:%S")  # 給畫面看的
+                mtime_iso = dt.strftime("%Y-%m-%d")       # 給 filter 用
                 mse_match = re.search(r"valmse_([\d.]+)", fname)
                 mse = float(mse_match.group(1).rstrip('.')) if mse_match else None
 
@@ -118,6 +121,7 @@ def list_checkpoint(request):
                     "name": fname.replace(".h5", ""),
                     "size": file_size,
                     "date": mtime,
+                    "date_iso": mtime_iso,
                     "mse": mse
                 })
 
