@@ -33,6 +33,8 @@
             <button onclick="download('mae')" class="btn btn-outline-info m-2">MAE 曲線</button>
             <button onclick="download('mape')" class="btn btn-outline-info m-2">MAPE 曲線</button>
             <button onclick="download('mse')" class="btn btn-outline-info m-2">MSE 曲線</button>
+            <hr>
+            <button onclick="downloadAll()" class="btn btn-success btn-lg mt-2">📦 一鍵下載所有檔案</button>
         </div>
 
         <!-- 返回首頁按鈕 -->
@@ -85,6 +87,16 @@
             return;
         }
         const url = `/download/file/${type}/${modelName}/`;
+        window.location.href = url;
+    }
+    function downloadAll() {
+        const modelSelect = document.getElementById("modelSelect");
+        const modelName = modelSelect.value;
+        if (!modelName) {
+            alert("請選擇模型名稱！");
+            return;
+        }
+        const url = `/download/all/${modelName}/`;
         window.location.href = url;
     }
 </script>

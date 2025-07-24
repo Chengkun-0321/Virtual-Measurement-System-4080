@@ -17,5 +17,6 @@ urlpatterns = [
     path("deploy_model/", views.deploy_model, name="deploy_model"),       # 部署模型
     path('download/', views.data_download, name='data'),                  # 資料下載頁面
     path('download/file/<str:file_type>/<str:model_name>/', views.download_file, name='download_file'),
+    path('download/all/<str:model_name>/', views.download_all_files, name='download_all_files'),
     path('api/list_model_names/', views.list_model_names, name='list_model_names'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

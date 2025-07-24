@@ -4,6 +4,8 @@ import time
 import pytz
 import json
 import subprocess
+import zipfile
+from io import BytesIO
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse, FileResponse, Http404
@@ -232,3 +234,28 @@ def download_file(request, file_type, model_name):
         return FileResponse(open(file_path, 'rb'), as_attachment=True)
     else:
         raise Http404("找不到檔案")
+    
+def download_all_files(request, model_name):
+    base_path = "/home/vms/Virtual_Measurement_System_model/Model_code"
+    file_paths = [
+        f"checkpoints/{model_name}.h5",
+        f"Training_History_Plot/{model_name}/混淆矩陣.png",
+        f"Training_History_Plot/{model_name}/ground_truth.png",
+        f"Training_History_Plot/{model_name}/training_loss_curve.png",
+        f"Training_History_Plot/{model_name}/training_mae_curve.png",
+        f"Training_History_Plot/{model_name}/training_mape_curve.png",
+        f"Training_History_Plot/{model_name}/training_mse_curve.png"
+    ]
+
+    zip_buffer = BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for rel_path in file_paths:
+            abs_path = os.path.join(base_path, rel_path)
+            if os.path.exists(abs_path):
+                zip_file.write(abs_path, arcname=os.path.basename(abs_path))
+
+    zip_buffer.seek(0)
+
+    response = FileResponse(zip_buffer, as_attachment=True, filename=f"{model_name}_all_files.zip")
+    return response
