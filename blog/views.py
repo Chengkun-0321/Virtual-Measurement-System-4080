@@ -105,15 +105,13 @@ def list_checkpoint(request):
 
         for fname in os.listdir(weights_dir):
             if fname.endswith(".h5"):
-                # 回傳 json 格式調整
                 full_path = os.path.join(weights_dir, fname)
                 stat_info = os.stat(full_path)
                 file_size = f"{stat_info.st_size / (1024 * 1024):.2f} MB"
 
-                taiwan_tz = pytz.timezone("Asia/Taipei")  # 時區轉換
                 dt = datetime.fromtimestamp(stat_info.st_mtime, taiwan_tz)
                 mtime = dt.strftime("%Y/%m/%d %H:%M:%S")  # 給畫面看的
-                mtime_iso = dt.strftime("%Y-%m-%d")       # 給 filter 用
+                mtime_iso = dt.strftime("%Y-%m-%d")       # 給篩選用
                 mse_match = re.search(r"valmse_([\d.]+)", fname)
                 mse = float(mse_match.group(1).rstrip('.')) if mse_match else None
 
@@ -122,13 +120,26 @@ def list_checkpoint(request):
                     "size": file_size,
                     "date": mtime,
                     "date_iso": mtime_iso,
-                    "mse": mse
+                    "mse": mse,
+                    "timestamp": stat_info.st_mtime  # 真正排序用
                 })
 
-        weights.sort(key=lambda x: x['date'], reverse=True)
+        # 讀取排序參數
+        sort_by = request.GET.get("sort_by")  # mse 或 date
+        order = request.GET.get("order", "desc")  # asc 或 desc
+
+        if sort_by == "mse":
+            weights.sort(key=lambda x: (x['mse'] is None, x['mse']), reverse=(order == "desc"))
+        elif sort_by == "date":
+            weights.sort(key=lambda x: x['timestamp'], reverse=(order == "desc"))
+        else:
+            weights.sort(key=lambda x: x['timestamp'], reverse=True)  # 預設照時間新到舊
+
         return JsonResponse(weights, safe=False)
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
     
 # 刪除本機模型檔案與資料夾
 @csrf_exempt
