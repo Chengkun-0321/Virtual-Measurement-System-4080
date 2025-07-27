@@ -205,7 +205,7 @@ def rename_checkpoint(request):
 def deploy_model(request):
     return render(request, "blog/deploy_model.html")
 
-# ----- 資料下載畫面 -----
+# ----- 資料分析畫面 -----
 # 模型和圖像資料夾
 model_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/checkpoints/"
 
@@ -222,8 +222,8 @@ def list_model_names(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
     
-def data_download(request):
-    return render(request, 'blog/data_download.html')
+def data_analysis(request):
+    return render(request, 'blog/data_analysis.html')
 
 def download_file(request, file_type, model_name):
     base_path = "/home/vms/Virtual_Measurement_System_model/Model_code"
@@ -249,28 +249,3 @@ def download_file(request, file_type, model_name):
         return FileResponse(open(file_path, 'rb'), as_attachment=True)
     else:
         raise Http404("找不到檔案")
-    
-def download_all_files(request, model_name):
-    base_path = "/home/vms/Virtual_Measurement_System_model/Model_code"
-    file_paths = [
-        f"checkpoints/{model_name}.h5",
-        f"Training_History_Plot/{model_name}/混淆矩陣.png",
-        f"Training_History_Plot/{model_name}/ground_truth.png",
-        f"Training_History_Plot/{model_name}/training_loss_curve.png",
-        f"Training_History_Plot/{model_name}/training_mae_curve.png",
-        f"Training_History_Plot/{model_name}/training_mape_curve.png",
-        f"Training_History_Plot/{model_name}/training_mse_curve.png"
-    ]
-
-    zip_buffer = BytesIO()
-
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for rel_path in file_paths:
-            abs_path = os.path.join(base_path, rel_path)
-            if os.path.exists(abs_path):
-                zip_file.write(abs_path, arcname=os.path.basename(abs_path))
-
-    zip_buffer.seek(0)
-
-    response = FileResponse(zip_buffer, as_attachment=True, filename=f"{model_name}_all_files.zip")
-    return response
