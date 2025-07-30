@@ -105,6 +105,7 @@ def list_checkpoint(request):
 
         for fname in os.listdir(weights_dir):
             if fname.endswith(".h5"):
+                name = fname.replace(".h5", "")
                 full_path = os.path.join(weights_dir, fname)
                 stat_info = os.stat(full_path)
                 file_size = f"{stat_info.st_size / (1024 * 1024):.2f} MB"
@@ -112,16 +113,20 @@ def list_checkpoint(request):
                 dt = datetime.fromtimestamp(stat_info.st_mtime, taiwan_tz)
                 mtime = dt.strftime("%Y/%m/%d %H:%M:%S")  # 給畫面看的
                 mtime_iso = dt.strftime("%Y-%m-%d")       # 給篩選用
-                mse_match = re.search(r"valmse_([\d.]+)", fname)
-                mse = float(mse_match.group(1).rstrip('.')) if mse_match else None
+
+                metadata_path = os.path.join(weights_dir, f"{name}.json")
+                mse = None
+                if os.path.exists(metadata_path):
+                    with open(metadata_path, 'r') as f:
+                        metadata = json.load(f)
+                        mse = metadata.get("mse")
 
                 weights.append({
-                    "name": fname.replace(".h5", ""),
-                    "size": file_size,
+                    "name": name,
+                    "size": f"{stat_info.st_size / (1024 * 1024):.2f} MB",
                     "date": mtime,
-                    "date_iso": mtime_iso,
                     "mse": mse,
-                    "timestamp": stat_info.st_mtime  # 真正排序用
+                    "timestamp": stat_info.st_mtime
                 })
 
         # 讀取排序參數
@@ -188,13 +193,22 @@ def rename_checkpoint(request):
                 return JsonResponse({"status": "error", "error": "原始檔案不存在"})
             if os.path.exists(new_path):
                 return JsonResponse({"status": "error", "error": "新檔案名稱已存在"})
-            
+
+            # 同步資料夾改名
             old_folder = os.path.join(base_dir, "Training_History_Plot", old_name)
             new_folder = os.path.join(base_dir, "Training_History_Plot", new_name)
             if os.path.exists(old_folder):
                 os.rename(old_folder, new_folder)
 
+            # 同步 JSON metadata 改名
+            old_json = os.path.join(base_dir, "checkpoints", f"{old_name}.json")
+            new_json = os.path.join(base_dir, "checkpoints", f"{new_name}.json")
+            if os.path.exists(old_json):
+                os.rename(old_json, new_json)
+
+            # 改名 .h5
             os.rename(old_path, new_path)
+
             return JsonResponse({"status": "success"})
         except Exception as e:
             return JsonResponse({"status": "error", "error": str(e)})
