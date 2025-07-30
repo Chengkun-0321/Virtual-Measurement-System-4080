@@ -20,65 +20,74 @@
 
         <!-- 表單區塊包在 Bootstrap 卡片中 -->
         <div class="row align-items-stretch">
-            <div class="card p-4 shadow-sm fs-5 h-100">
-                <h5 class="card-title text-center">訓練參數設定</h5>
-                <form method="post" class="mb-4">
-                    {% csrf_token %}
-                    <div class="row">
-                        <!-- 第一列：模型選擇與資料來源 -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">選擇模型架構</label>
-                            <select name="model" class="form-select">
-                                <option value="Mamba">Mamba</option>
-                                <option value="ResNet">ResNet</option>
-                                <option value="LSTM">LSTM</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">訓練資料來源</label>
-                            <select name="dataset" class="form-select">
-                                <option value="PETBottle">PETBottle</option>
-                                <option value="TFT">TFT</option>
-                            </select>
-                        </div>
+            <!-- 左側表單 -->
+            <div class="col-md-6" style="flex: 0 0 60%;">
+                <div class="card p-4 shadow-sm fs-5 h-100">
+                    <h5 class="card-title text-center">訓練參數設定</h5>
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="row">
+                            <!-- 第一列：模型選擇與資料來源 -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">選擇模型架構</label>
+                                <select name="model" class="form-select">
+                                    <option value="Mamba">Mamba</option>
+                                    <option value="ResNet">ResNet</option>
+                                    <option value="LSTM">LSTM</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">訓練資料來源</label>
+                                <select name="dataset" class="form-select">
+                                    <option value="PETBottle">PETBottle</option>
+                                    <option value="TFT">TFT</option>
+                                </select>
+                            </div>
 
-                        <!-- 第二列：epochs、batch_size、learning_rate、validation_freq參數 -->
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">epochs</label>
-                            <input type="text" name="epochs" class="form-control" value="10">
-                        </div>
+                            <!-- 第二列：epochs、batch_size、learning_rate、validation_freq參數 -->
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">epochs</label>
+                                <input type="text" name="epochs" class="form-control" value="10">
+                            </div>
 
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">batch_size</label>
-                            <input type="text" name="batch_size" class="form-control" value="129">
-                        </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">batch_size</label>
+                                <input type="text" name="batch_size" class="form-control" value="129">
+                            </div>
 
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">learning_rate</label>
-                            <input type="text" name="learning_rate" class="form-control" value="0.0001">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">validation_freq</label>
-                            <input type="text" name="validation_freq" class="form-control" value="1">
-                        </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">learning_rate</label>
+                                <input type="text" name="learning_rate" class="form-control" value="0.0001">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">validation_freq</label>
+                                <input type="text" name="validation_freq" class="form-control" value="1">
+                            </div>
 
-                        <!-- 執行按鈕 -->
-                        <div class="d-grid">
-                            <button type="button" class="btn btn-primary btn-lg" id="run-train">▶️ 執行模型訓練</button>
+                            <!-- 執行按鈕 -->
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-primary btn-lg" id="run-train">▶️ 執行模型訓練</button>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 右側最佳結果 -->
+            <div class="col-md-6" style="flex: 0 0 40%;">
+                <div class="card p-4 shadow-sm fs-5 h-100 text-center">
+                    <h5 class="card-title">📊 本次訓練最佳結果</h5>
+                    <p id="best-result" class="fs-5">
+                        尚未開始訓練...
+                    </p>
+                </div>
             </div>
         </div>
 
         <!-- 即時訓練曲線 -->
         <br>
-        <h5 class="card-title text-center">即時Loss訓練曲線</h5>
+        <h5 class="card-title text-center">📈 即時訓練曲線</h5>
         <canvas id="trainingChart" height="100" class="mb-4"></canvas>
-
-        <!-- 即時驗證指標曲線 -->
-        <h5 class="card-title text-center">即時val_mse、val_mae、val_mape訓練曲線</h5>
-        <canvas id="valMetricsChart" height="100" class="mb-4"></canvas>
         
 
         <!-- 執行結果區塊（改為 textarea 即時顯示）-->
@@ -104,8 +113,8 @@
             const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
 
             // 初始化 Chart.js
-            const ctx1 = document.getElementById('trainingChart').getContext('2d');
-            const trainingChart = new Chart(ctx1, {
+            const ctx = document.getElementById('trainingChart').getContext('2d');
+            const trainingChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: [], // Epochs
@@ -147,53 +156,6 @@
                 }
             });
 
-            // 初始化 val 指標曲線
-            const ctx2 = document.getElementById('valMetricsChart').getContext('2d');
-            const valMetricsChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'val_mse',
-                            data: [],
-                            borderColor: 'green',
-                            fill: false
-                        },
-                        {
-                            label: 'val_mae',
-                            data: [],
-                            borderColor: 'orange',
-                            fill: false
-                        },
-                        {
-                            label: 'val_mape',
-                            data: [],
-                            borderColor: 'purple',
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    animation: false,
-                    spanGaps: true,
-                    scales: {
-                        x: { title: { display: true, text: 'Epoch' } },
-                        y: {
-                            title: { display: true, text: 'Value' },
-                            beginAtZero: false,
-                            ticks: {
-                                precision: 2,
-                                callback: function(value) {
-                                    return value.toFixed(2);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
             // 當 WebSocket 連線成功
             socket.onopen = function() {
                 console.log("WebSocket 已連線");
@@ -209,9 +171,6 @@
                 window.allEpochs = window.allEpochs || [];
                 window.allLosses = window.allLosses || [];
                 window.allValLosses = window.allValLosses || [];
-                window.allMse = window.allMse || [];
-                window.allMae = window.allMae || [];
-                window.allMape = window.allMape || [];
 
                 // 嘗試抓取 Epoch 編號
                 let epochMatch = data.match(/Epoch\s+(\d+)\/\d+/);
@@ -232,46 +191,8 @@
                     trainingChart.data.datasets[0].data = window.allLosses.slice(-50);
                 }
 
-                // val_mse
-                let valMSEMatch = data.match(/val_mse\s*[:：]?\s*([\d.]+)/);
-                if (valMSEMatch) {
-                    const valMSE = parseFloat(valMSEMatch[1]);
-                    if (window.allMse.length < window.allEpochs.length) {
-                        window.allMse.push(valMSE);
-                    } else {
-                        window.allMse[window.allEpochs.length - 1] = valMSE;
-                    }
-                    valMetricsChart.data.datasets[0].data = window.allMse.slice(-50);
-                }
-
-                // val_mae
-                let valMAEMatch = data.match(/val_mae\s*[:：]?\s*([\d.]+)/);
-                if (valMAEMatch) {
-                    const valMAE = parseFloat(valMAEMatch[1]);
-                    if (window.allMae.length < window.allEpochs.length) {
-                        window.allMae.push(valMAE);
-                    } else {
-                        window.allMae[window.allEpochs.length - 1] = valMAE;
-                    }
-                    valMetricsChart.data.datasets[1].data = window.allMae.slice(-50);
-                }
-
-                // val_mape
-                let valMAPEMatch = data.match(/val_mape\s*[:：]?\s*([\d.]+)/);
-                if (valMAPEMatch) {
-                    const valMAPE = parseFloat(valMAPEMatch[1]);
-                    if (window.allMape.length < window.allEpochs.length) {
-                        window.allMape.push(valMAPE);
-                    } else {
-                        window.allMape[window.allEpochs.length - 1] = valMAPE;
-                    }
-                    valMetricsChart.data.datasets[2].data = window.allMape.slice(-50);
-                }
-
                 trainingChart.data.labels = window.allEpochs.slice(-50);
                 trainingChart.update();
-                valMetricsChart.data.labels = window.allEpochs.slice(-50);
-                valMetricsChart.update();
 
                 // 寫入執行結果
                 output.value += data + "\n";
@@ -324,9 +245,6 @@
                 trainingChart.data.datasets.forEach(ds => ds.data = []);
                 window.allValLosses = [];
                 trainingChart.update();
-                valMetricsChart.data.labels = [];
-                valMetricsChart.data.datasets.forEach(ds => ds.data = []);
-                valMetricsChart.update();
 
                 socket.send(JSON.stringify(data));
             });
