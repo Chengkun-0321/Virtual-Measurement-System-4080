@@ -278,7 +278,7 @@
                 output.scrollTop = output.scrollHeight;
 
                 // 收到 finish 關鍵字
-                if (data.includes("finsh train!")) {
+                if (data.includes("__FINISHED__")) {
                     const text = output.value;
                     const epoch = text.match(/最佳 Epoch[:：]\s*(\d+)/)?.[1] || '-';
                     const val_loss = text.match(/ - val_loss[:：]\s*([\d.]+)/)?.[1] || '-';
@@ -286,19 +286,12 @@
                     const val_mae = text.match(/ - val_mae \s*[:：]\s*([\d.]+)/)?.[1] || '-';
                     const val_mape = text.match(/ - val_mape[:：]\s*([\d.]+)/)?.[1] || '-';
                     const modelPath = text.match(/已儲存最佳模型[:：]\s*checkpoints\/(.+\.h5)/)?.[1] || '未知';
-
-                    document.getElementById('best-result').innerHTML = `
-                        Epoch: ${epoch}<br>
-                        val_loss: ${parseFloat(val_loss).toFixed(4)}<br>
-                        val_mse: ${parseFloat(val_mse).toFixed(4)}<br>
-                        val_mae: ${parseFloat(val_mae).toFixed(4)}<br>
-                        val_mape: ${parseFloat(val_mape).toFixed(4)}<br><br>
-                        <b>已儲存最佳模型：${modelPath}</b>
-                    `;
-
+                    
                     runTrainButton.disabled = false;
                     runTrainButton.innerHTML = '▶️ 執行模型訓練';
                 }
+
+                console.log(data);
             };
 
             // 執行按鈕動作
