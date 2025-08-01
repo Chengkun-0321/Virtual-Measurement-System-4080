@@ -78,6 +78,19 @@
                     <div id="err-img-gt" class="text-danger mt-2 fw-bold" style="display: none;">找不到圖檔</div>
                 </div>
             </div>
+
+            <!-- 第四排：混淆矩陣（獨立正方形 + 置中） -->
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <h5>混淆矩陣</h5>
+                    <div style="max-width:450px; margin:auto;">
+                        <img id="img-confusion" class="img-fluid rounded shadow"
+                            style="width:100%; aspect-ratio: 1 / 1; object-fit:contain;"
+                            onerror="handleImageError(this)">
+                        <div id="err-img-confusion" class="text-danger mt-2 fw-bold" style="display: none;">找不到圖檔</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 返回首頁按鈕 -->
@@ -150,6 +163,7 @@
         const folder = modelName;
 
         const imageMap = {
+            "img-confusion": "混淆矩陣.png",
             "img-gt": "ground_truth.png",
             "img-loss": "training_loss_curve.png",
             "img-mae": "training_mae_curve.png",
@@ -175,6 +189,7 @@
         const folder = modelName;
 
         const imageMap = {
+            "img-confusion": "混淆矩陣.png",
             "img-gt": "ground_truth.png",
             "img-loss": "training_loss_curve.png",
             "img-mae": "training_mae_curve.png",
