@@ -15,7 +15,34 @@
         <!-- 伺服器 連線提示 -->
         <div id="ssh-status" class="text-center mb-3">
             <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
-        </div>  
+        </div>
+
+        <!-- 匯入 CSV -->
+        <form id="upload-form" enctype="multipart/form-data" class="mb-4">
+            <label for="csv-file" class="form-label fw-bold">匯入製程參數（CSV）:</label>
+            <input type="file" id="csv-file" name="file" accept=".csv" class="form-control mb-2">
+            <button type="submit" class="btn btn-primary">上傳並預覽資料</button>
+        </form>
+
+        <!-- 資料表格 -->
+        <div id="data-table-container" class="scroll-table mb-4 d-none">
+            <table id="data-table" class="table table-bordered table-sm">
+                <thead class="table-light"></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- 模型選擇 -->
+        <div class="mb-3">
+            <label for="model-select" class="form-label fw-bold">選擇模型：</label>
+            <select id="model-select" class="form-select"></select>
+        </div>
+
+        <!-- 預測按鈕 -->
+        <button id="predict-btn" class="btn btn-success mb-3">執行預測</button>
+
+        <!-- 預測結果 -->
+        <div id="prediction-result" class="alert alert-info d-none"></div>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -26,6 +53,75 @@
                 console.log("✅ WebSocket 已連線");
                 sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
             };
+        });
+
+        // 上傳 CSV
+        document.getElementById('upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('/api/upload_csv/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.columns && data.rows) {
+                    const table = document.getElementById('data-table');
+                    const thead = table.querySelector('thead');
+                    const tbody = table.querySelector('tbody');
+                    thead.innerHTML = '';
+                    tbody.innerHTML = '';
+
+                    // 標題列
+                    const headRow = document.createElement('tr');
+                    headRow.innerHTML = `<th>選取</th>` + data.columns.map(col => `<th>${col}</th>`).join('');
+                    thead.appendChild(headRow);
+
+                    // 資料列
+                    data.rows.forEach((row, i) => {
+                        const rowHtml = `<td><input type="checkbox" class="row-select" value="${i}"></td>` +
+                            row.map(val => `<td>${val}</td>`).join('');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = rowHtml;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.getElementById('data-table-container').classList.remove('d-none');
+                }
+            });
+        });
+
+        // 取得模型選單
+        fetch('/api/list_model_names/')
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById('model-select');
+                data.models.forEach(model => {
+                    const opt = document.createElement('option');
+                    opt.value = model;
+                    opt.textContent = model;
+                    select.appendChild(opt);
+                });
+            });
+
+        // 預測
+        document.getElementById('predict-btn').addEventListener('click', function () {
+            const checkboxes = document.querySelectorAll('.row-select:checked');
+            const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            const modelName = document.getElementById('model-select').value;
+
+            fetch('/api/predict/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ indices: selectedIndices, model: modelName })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const resultDiv = document.getElementById('prediction-result');
+                resultDiv.classList.remove('d-none');
+                resultDiv.innerHTML = `<strong>預測結果：</strong><br>${data.predictions.join('<br>')}`;
+            });
         });
     </script>
 </body>

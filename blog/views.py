@@ -12,6 +12,9 @@ from django.http import JsonResponse, HttpResponse, FileResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.utils.timezone import localtime
+import pandas as pd
+import numpy as np
+from tensorflow.keras.models import load_model
 
 # 首頁畫面
 @csrf_exempt
@@ -218,6 +221,53 @@ def rename_checkpoint(request):
 # ----- 部署模型畫面 -----
 def deploy_model(request):
     return render(request, "blog/deploy_model.html")
+
+uploaded_data = None  # 全域暫存匯入資料
+
+@csrf_exempt
+def upload_csv(request):
+    global uploaded_data
+    if request.method == 'POST' and request.FILES.get('file'):
+        try:
+            file = request.FILES['file']
+            df = pd.read_csv(file)
+            uploaded_data = df
+            preview = df.head(20).values.tolist()
+            return JsonResponse({
+                "columns": list(df.columns),
+                "rows": preview
+            })
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "請提供CSV檔"}, status=400)
+
+@csrf_exempt
+def predict_from_selected_rows(request):
+    global uploaded_data
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            indices = body.get('indices', [])
+            model_name = body.get('model')
+
+            if uploaded_data is None:
+                return JsonResponse({"error": "尚未上傳資料"}, status=400)
+
+            selected_df = uploaded_data.iloc[indices]
+            model_path = os.path.join(model_dir, model_name + ".h5")
+
+            if not os.path.exists(model_path):
+                return JsonResponse({"error": "模型不存在"}, status=404)
+
+            model = load_model(model_path)
+            predictions = model.predict(selected_df.to_numpy())
+            pred_result = predictions.flatten().round(3).tolist()
+
+            return JsonResponse({"predictions": pred_result})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "無效請求"}, status=400)
 
 # ----- 資料分析畫面 -----
 # 模型和圖像資料夾
