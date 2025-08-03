@@ -29,10 +29,10 @@
                     <option value="date_desc">🕒 最新</option>
                     <option value="date_asc">🕒 最舊</option>
                 </select>
-                <select id="sort-mse" class="form-select">
-                    <option value="none">📉 MSE排序</option>
-                    <option value="mse_asc">📉 MSE △</option>
-                    <option value="mse_desc">📈 MSE ▽</option>
+                <select id="sort-acc" class="form-select">
+                    <option value="none">📉 ACC排序</option>
+                    <option value="acc_asc">📉 ACC △</option>
+                    <option value="acc_desc">📈 ACC ▽</option>
                 </select>
             </div>
         </div>
@@ -48,7 +48,7 @@
                         <tr>
                             <th>檔名</th>
                             <th>建立時間</th>
-                            <th>MSE</th>
+                            <th>ACC</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -59,12 +59,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        
-        <!-- 返回首頁按鈕 -->
-        <div class="text-center mt-4">
-            <a href="/" class="btn btn-secondary btn-lg">🔙 返回首頁</a>
         </div>
     </div>
     <script>
@@ -83,16 +77,16 @@
         // 搜尋欄、排序欄位都加入事件
         document.getElementById("filter-name").addEventListener("input", loadWeights);
         document.getElementById("sort-date").addEventListener("change", loadWeights);
-        document.getElementById("sort-mse").addEventListener("change", loadWeights);
+        document.getElementById("sort-acc").addEventListener("change", loadWeights);
 
         // 清除另一個排序選單
-        document.getElementById("sort-mse").addEventListener("change", () => {
+        document.getElementById("sort-acc").addEventListener("change", () => {
             document.getElementById("sort-date").value = "none";
             loadWeights();
         });
 
         document.getElementById("sort-date").addEventListener("change", () => {
-            document.getElementById("sort-mse").value = "none";
+            document.getElementById("sort-acc").value = "none";
             loadWeights();
         });
 
@@ -101,7 +95,7 @@
             const params = [];
 
             const dateSort = document.getElementById("sort-date").value;
-            const mseSort = document.getElementById("sort-mse").value;
+            const accSort = document.getElementById("sort-acc").value;
 
             if (dateSort && dateSort !== "none") {
                 const [sort_by, order] = dateSort.split("_");
@@ -109,8 +103,8 @@
                 params.push(`order=${order}`);
             }
 
-            if (mseSort && mseSort !== "none") {
-                const [sort_by, order] = mseSort.split("_");
+            if (accSort && accSort !== "none") {
+                const [sort_by, order] = accSort.split("_");
                 params.push(`sort_by=${sort_by}`);
                 params.push(`order=${order}`);
             }
@@ -139,7 +133,7 @@
                         row.innerHTML = `
                             <td>${file.name}.h5</td>
                             <td>${file.date}</td>
-                            <td>${file.mse !== null ? file.mse : "-"}</td>
+                            <td>${file.acc !== null ? parseFloat(file.acc).toFixed(2) : "-"} %</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary rename-btn" data-old="${file.name}">✏️ 修改名稱</button>
                                 <button class="btn btn-sm btn-outline-danger ms-2 delete-btn" data-name="${file.name}">🗑️ 刪除</button>

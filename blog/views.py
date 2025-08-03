@@ -118,17 +118,17 @@ def list_checkpoint(request):
                 mtime_iso = dt.strftime("%Y-%m-%d")       # 給篩選用
 
                 metadata_path = os.path.join(weights_dir, f"{name}.json")
-                mse = None
+                acc = None
                 if os.path.exists(metadata_path):
                     with open(metadata_path, 'r') as f:
                         metadata = json.load(f)
-                        mse = metadata.get("mse")
+                        acc = metadata.get("acc")
 
                 weights.append({
                     "name": name,
                     "size": f"{stat_info.st_size / (1024 * 1024):.2f} MB",
                     "date": mtime,
-                    "mse": mse,
+                    "acc": acc,
                     "timestamp": stat_info.st_mtime
                 })
 
@@ -136,8 +136,8 @@ def list_checkpoint(request):
         sort_by = request.GET.get("sort_by")  # mse 或 date
         order = request.GET.get("order", "desc")  # asc 或 desc
 
-        if sort_by == "mse":
-            weights.sort(key=lambda x: (x['mse'] is None, x['mse']), reverse=(order == "desc"))
+        if sort_by == "acc":
+            weights.sort(key=lambda x: (x['acc'] is None, x['acc']), reverse=(order == "desc"))
         elif sort_by == "date":
             weights.sort(key=lambda x: x['timestamp'], reverse=(order == "desc"))
         else:
@@ -163,10 +163,13 @@ def delete_local_weights(request):
             base_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code")
             for filename in filenames:
                 weight_path = os.path.join(base_dir, "checkpoints", f"{filename}.h5")
+                json_path = os.path.join(base_dir, "checkpoints", f"{filename}.json")
                 folder_path = os.path.join(base_dir, "Training_History_Plot", filename)
 
                 if os.path.exists(weight_path):
                     os.remove(weight_path)
+                if os.path.exists(json_path):
+                    os.remove(json_path)
                 if os.path.exists(folder_path):
                     subprocess.call(["rm", "-rf", folder_path])
 
