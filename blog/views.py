@@ -4,7 +4,7 @@ import time
 import pytz
 import json
 import subprocess
-import zipfile
+import traceback
 from io import BytesIO
 from datetime import datetime
 from django.shortcuts import render
@@ -15,6 +15,8 @@ from django.utils.timezone import localtime
 import pandas as pd
 import numpy as np
 from tensorflow.keras.models import load_model
+import random
+from django.conf import settings
 
 # 首頁畫面
 @csrf_exempt
@@ -222,27 +224,80 @@ def rename_checkpoint(request):
     return JsonResponse({"status": "error", "error": "無效的請求"})
 
 # ----- 部署模型畫面 -----
+model_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/checkpoints/"
+
 def deploy_model(request):
     return render(request, "blog/deploy_model.html")
+
+# csv 版本
+"""
+def download_random_100(request):
+    # CSV 檔案路徑
+    csv_path = os.path.join(settings.BASE_DIR, 'static', 'test-data.csv')
+
+    # 讀取 CSV
+    df = pd.read_csv(csv_path)
+
+    # 隨機抽取 100 筆
+    sampled_df = df.sample(n=100, random_state=random.randint(0, 9999))
+
+    # 轉換為 CSV 格式（存成記憶體中的檔案）
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="sampled_100.csv"'
+    sampled_df.to_csv(path_or_buf=response, index=False)
+
+    return response
+"""
+
+# npy 版本
+def download_random_100(request):
+    # npy 檔案路徑（這是已經轉好的 (N, 9, 9)）
+    npy_path = os.path.join(settings.BASE_DIR, 'static', 'test-data.npy')
+
+    # 載入 npy 資料
+    full_data = np.load(npy_path)
+
+    # 隨機抽取 100 筆資料
+    sampled_indices = np.random.choice(full_data.shape[0], 100, replace=False)
+    sampled_data = full_data[sampled_indices]
+
+    # 將資料存成 Bytes 格式放進 HttpResponse
+    response = HttpResponse(content_type='application/octet-stream')
+    response['Content-Disposition'] = 'attachment; filename="sampled_100.npy"'
+    np.save(response, sampled_data)
+
+    return response
 
 uploaded_data = None  # 全域暫存匯入資料
 
 @csrf_exempt
-def upload_csv(request):
-    global uploaded_data
+def upload_npy(request):
+    global uploaded_data  # ← 必加
     if request.method == 'POST' and request.FILES.get('file'):
-        try:
-            file = request.FILES['file']
-            df = pd.read_csv(file)
-            uploaded_data = df
-            preview = df.head(20).values.tolist()
+        npy_file = request.FILES['file']
+        
+        # 載入 npy 檔
+        data = np.load(npy_file, allow_pickle=True)  # (N, 9, 9)
+        
+        if len(data.shape) == 3 and data.shape[1:] == (9, 9):
+            num_samples = data.shape[0]
+
+            # ✅ 儲存為 DataFrame，讓 predict 也能取用（展平）
+            flat_data = data.reshape(num_samples, -1)
+            uploaded_data = pd.DataFrame(flat_data)
+
+            # 回傳前端預覽欄位
+            columns = [f'F{i}' for i in range(flat_data.shape[1])]
+            rows = flat_data.tolist()
+
             return JsonResponse({
-                "columns": list(df.columns),
-                "rows": preview
+                'columns': columns,
+                'rows': rows
             })
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "請提供CSV檔"}, status=400)
+
+        return JsonResponse({'error': '格式錯誤，請上傳 shape 為 (N, 9, 9) 的 .npy 檔案'}, status=400)
+
+    return JsonResponse({'error': '請使用 POST 並上傳檔案'}, status=400)
 
 @csrf_exempt
 def predict_from_selected_rows(request):
@@ -255,6 +310,8 @@ def predict_from_selected_rows(request):
 
             if uploaded_data is None:
                 return JsonResponse({"error": "尚未上傳資料"}, status=400)
+            if not indices:
+                return JsonResponse({"error": "未勾選任何資料列"}, status=400)
 
             selected_df = uploaded_data.iloc[indices]
             model_path = os.path.join(model_dir, model_name + ".h5")
@@ -262,8 +319,13 @@ def predict_from_selected_rows(request):
             if not os.path.exists(model_path):
                 return JsonResponse({"error": "模型不存在"}, status=404)
 
-            model = load_model(model_path)
-            predictions = model.predict(selected_df.to_numpy())
+            # model = load_model(model_path)
+            model = load_model(model_path, compile=False)
+
+            data_np = selected_df.to_numpy().reshape(-1, 9, 9, 1).astype(np.float32)
+            # predictions = model.predict(selected_df.to_numpy())
+            # pred_result = predictions.flatten().round(3).tolist()
+            predictions = model.predict(data_np)
             pred_result = predictions.flatten().round(3).tolist()
 
             return JsonResponse({"predictions": pred_result})
@@ -274,7 +336,6 @@ def predict_from_selected_rows(request):
 
 # ----- 資料分析畫面 -----
 # 模型和圖像資料夾
-model_dir = "/home/vms/Virtual_Measurement_System_model/Model_code/checkpoints/"
 
 @require_GET
 def list_model_names(request):
