@@ -1,8 +1,11 @@
 import asyncio
 import json
+import logging
 import os
 import subprocess
 from channels.generic.websocket import AsyncWebsocketConsumer
+
+logger = logging.getLogger(__name__)
 
 class CMDConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -13,39 +16,8 @@ class CMDConsumer(AsyncWebsocketConsumer):
         action = data.get('action')
         self.send(text_data=json.dumps({"message": "Received!"}))
 
-        if action == 'run-train':
-            await self.send(text_data="開始本機模型訓練...")
-
-            model = data['model']
-            dataset = data['dataset']
-            epochs = data['epochs']
-            batch_size = data['batch_size']
-            lr = data['learning_rate']
-            val_freq = data['validation_freq']
-
-            if model == "Mamba":
-                model_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/")
-                venv_dir = "mamba"
-                py_file = "train_code.py"
-            else:
-                await self.send(text_data="不支援的模型架構")
-                return
-
-            cmd = (
-                f"cd {model_dir} && "
-                f"source ~/anaconda3/etc/profile.d/conda.sh && "
-                f"conda activate {venv_dir} && "
-                f"python {py_file} "
-                f"--train_x './process_data_Splitting/training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
-                f"--train_y './process_data_Splitting/training_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
-                f"--valid_x './process_data_Splitting/validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_x.npy' "
-                f"--valid_y './process_data_Splitting/validation_data/{dataset}/cnn-2d_2020-09-09_11-45-24_y.npy' "
-                f"--epochs {epochs} --batch_size {batch_size} --lr {lr} --validation_freq {val_freq}"
-            )
-
-            await self.run_command(cmd)
-
-        elif action == 'run-test':
+        if action == 'run-test':
+            await self.send(text_data="✅ 後端收到 run-test 指令")
             await self.send("📡 本機執行測試中...")
             model = data['model']
             dataset = data['dataset']
@@ -175,3 +147,65 @@ class CMDConsumer(AsyncWebsocketConsumer):
             "folder": folder_name,
             "files": files
         }))
+
+
+class TrainingConsumer(AsyncWebsocketConsumer):
+    # 前端一連線，就會被加入到一個名叫 "training_group" 的群組，這樣 Celery 就能廣播訊息給這些人。
+    async def connect(self):
+        # 當前端透過 ws://.../ws/train/ 連線進來時
+        # 把這個連線加入 "training_group"
+        await self.channel_layer.group_add("training_group", self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # 當前端斷線時，移除 group 成員
+        await self.channel_layer.group_discard("training_group", self.channel_name)
+
+    # Celery 呼叫的 type=training.log 會進來這裡
+    async def training_log(self, event):
+        message = event["message"]
+        # 檢查 celery 傳來的訊息
+        # logger.info("consumer.py 收到: %s", message)
+        # 把 Celery 任務的 log（stdout）即時推送到前端的 WebSocket
+        await self.send(text_data=message)
+
+
+class TestingConsumer(AsyncWebsocketConsumer):
+    # 前端一連線，就會被加入到一個名叫 "testing_group" 的群組，這樣 Celery 就能廣播訊息給這些人。
+    async def connect(self):
+        # 當前端透過 ws://.../ws/train/ 連線進來時
+        # 把這個連線加入 "testing_group"
+        await self.channel_layer.group_add("testing_group", self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # 當前端斷線時，移除 group 成員
+        await self.channel_layer.group_discard("testing_group", self.channel_name)
+
+    # Celery 呼叫的 type=testing.log 會進來這裡
+    async def testing_log(self, event):
+        message = event["message"]
+        # 檢查 celery 傳來的訊息
+        # logger.info("consumer.py 收到: %s", message)
+        # 把 Celery 任務的 log（stdout）即時推送到前端的 WebSocket
+        await self.send(text_data=message)
+
+class DeployingConsumer(AsyncWebsocketConsumer):
+    # 前端一連線，就會被加入到一個名叫 "testing_group" 的群組，這樣 Celery 就能廣播訊息給這些人。
+    async def connect(self):
+        # 當前端透過 ws://.../ws/DEPLOY/ 連線進來時
+        # 把這個連線加入 "deploying_group"
+        await self.channel_layer.group_add("deploying_group", self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # 當前端斷線時，移除 group 成員
+        await self.channel_layer.group_discard("deploying_group", self.channel_name)
+
+    # Celery 呼叫的 type=testing.log 會進來這裡
+    async def deploying_log(self, event):
+        message = event["message"]
+        # 檢查 celery 傳來的訊息
+        # logger.info("consumer.py 收到: %s", message)
+        # 把 Celery 任務的 log（stdout）即時推送到前端的 WebSocket
+        await self.send(text_data=message)

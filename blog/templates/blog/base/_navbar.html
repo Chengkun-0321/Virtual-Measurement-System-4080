@@ -29,11 +29,27 @@
                 </li>
                 <li class="nav-item">
                     <!-- 部署模型頁面 -->
-                    <a class="nav-link fs-5 text-dark" href="{% url 'deploy_model' %}">部署模型</a>
+                    <a class="nav-link fs-5 text-dark" href="{% url 'model_deploy' %}">部署模型</a>
                 </li>
                 <li class="nav-item">
                     <!-- 顯示結果頁面 -->
-                    <a class="nav-link fs-5 text-dark" href="{% url 'data' %}">資料分析</a>
+                    <a class="nav-link fs-5 text-dark" href="{% url 'data_analysis' %}">資料分析</a>
+                </li>
+            </ul>
+            <!-- 登出按鈕放在右側 -->
+            <ul class="navbar-nav align-items-center">
+                <li class="nav-item me-3">
+                    <span class="navbar-text fw-bold text-dark">
+                        👤 {{ request.user.username }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <form id="logout-form" method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm ms-2">
+                            🚪 登出
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>

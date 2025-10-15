@@ -1,295 +1,86 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>模型訓練頁面</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="d-flex flex-column min-vh-100" style="font-family: '標楷體';">
-    {% include "blog/_navbar.html" %}
-    <div class="container">
-        <br>
-        <!-- 頁面標題 -->
-        <h2 class="mb-4 text-center">🚀 模型訓練頁面</h2>
+{% extends "blog/base/yes_login.html" %}
+{% load static %}
 
-        <!-- 伺服器 連線提示 -->
-        <div id="ssh-status" class="text-center mb-3">
-            <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
-        </div>
+{% block title %}模型訓練{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/model_train.css' %}?v=1">
+{% endblock %}
 
-        <!-- 訓練參數設定 -->
-        <div class="row justify-content-center">
-            <div class="col-lg-8 col-md-10">
-                <div class="card p-4 shadow-sm fs-5 h-100">
-                    <h5 class="card-title text-center">訓練參數設定</h5>
-                    <form method="post" class="mb-4">
-                        {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">選擇模型架構</label>
-                                <select name="model" class="form-select">
-                                    <option value="Mamba">Mamba</option>
-                                    <option value="ResNet">ResNet</option>
-                                    <option value="LSTM">LSTM</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">訓練資料來源</label>
-                                <select name="dataset" class="form-select">
-                                    <option value="PETBottle">PETBottle</option>
-                                    <option value="TFT">TFT</option>
-                                </select>
-                            </div>
+{% block content %}
+<div class="container">
+    <br>
+    <h2 class="mb-4 text-center">🚀 模型訓練頁面</h2>
 
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">epochs</label>
-                                <input type="text" name="epochs" class="form-control" value="10">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">batch_size</label>
-                                <input type="text" name="batch_size" class="form-control" value="129">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">learning_rate</label>
-                                <input type="text" name="learning_rate" class="form-control" value="0.0001">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">validation_freq</label>
-                                <input type="text" name="validation_freq" class="form-control" value="1">
-                            </div>
+    <div id="ssh-status" class="text-center mb-3">
+        <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
+    </div>
 
-                            <div class="d-grid">
-                                <button type="button" class="btn btn-primary btn-lg" id="run-train">▶️ 執行模型訓練</button>
-                            </div>
+    <!-- 表單 -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card p-4 shadow-sm fs-5 h-100">
+                <h5 class="card-title text-center">訓練參數設定</h5>
+                <form id="train-form" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">選擇模型架構</label>
+                            <select name="model" class="form-select">
+                                <option value="Mamba">Mamba</option>
+                                <option value="ResNet">ResNet</option>
+                                <option value="LSTM">LSTM</option>
+                            </select>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">訓練資料來源</label>
+                            <select name="dataset" class="form-select">
+                                <option value="PETBottle">PETBottle</option>
+                                <option value="TFT">TFT</option>
+                            </select>
+                        </div>
 
-        <!-- 即時訓練曲線 -->
-        <br>
-        <div class="row">
-            <div class="col-md-6">
-                <h5 class="card-title text-center">即時 Loss 訓練曲線</h5>
-                <canvas id="LossChart" height="150" class="mb-4"></canvas>
-            </div>
-            <div class="col-md-6">
-                <h5 class="card-title text-center">即時 Acc 訓練曲線</h5>
-                <canvas id="AccChart" height="150" class="mb-4"></canvas>
-            </div>
-        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">epochs</label>
+                            <input type="text" name="epochs" class="form-control" value="10">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">batch_size</label>
+                            <input type="text" name="batch_size" class="form-control" value="129">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">learning_rate</label>
+                            <input type="text" name="learning_rate" class="form-control" value="0.0001">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">validation_freq</label>
+                            <input type="text" name="validation_freq" class="form-control" value="1">
+                        </div>
 
-        
-
-        <!-- 執行結果區塊（改為 textarea 即時顯示）-->
-        <div class="card mt-5 shadow-sm" style="display:none;">
-            <div class="card-header">
-                📤 執行結果
-            </div>
-            <div class="card-body">
-                <textarea id="output" class="form-control bg-light" rows="15" style="resize: none;" readonly></textarea>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary btn-lg" id="run-train">▶️ 執行模型訓練</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const runTrainButton = document.getElementById('run-train');
-            const sshStatus = document.getElementById('ssh-status');
 
-            const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
+    <!-- 訓練曲線 -->
+    <br>
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="card-title text-center">即時 Loss 訓練曲線</h5>
+            <canvas id="LossChart" height="150" class="mb-4"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h5 class="card-title text-center">即時 Acc 訓練曲線</h5>
+            <canvas id="AccChart" height="150" class="mb-4"></canvas>
+        </div>
+    </div>
 
-            // 初始化 Chart.js
-            const ctx1 = document.getElementById('LossChart').getContext('2d');
-            const LossChart = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: [], // Epochs
-                    datasets: [
-                        { label: 'train', data: [], borderColor: 'blue', fill: false},      // train Loss
-                        { label: 'test', data: [], borderColor: 'orange', fill: false}      // test Loss
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    animation: false, // 關閉動畫提升即時效率
-                    spanGaps: true,   // 允許跳過缺失點
-                    scales: {
-                        x: { title: { display: true, text: 'Epoch' } },
-                        y: {
-                            title: { display: true, text: 'Loss' },
-                            beginAtZero: false,
-                            ticks: {
-                                autoSkip: true,
-                                precision: 2, // 小數點位數
-                                callback: function(value) {
-                                    return value.toFixed(2); // 顯示 2 位小數
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+</div>
+{% endblock %}
 
-            const ctx2 = document.getElementById('AccChart').getContext('2d');
-            const AccChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: [], // Epochs
-                    datasets: [
-                        { label: 'train', data: [], borderColor: 'blue', fill: false},      // train Acc(1 - mae)
-                        { label: 'test', data: [], borderColor: 'orange', fill: false}      // test Acc(1 - val_mae)
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    animation: false, // 關閉動畫提升即時效率
-                    spanGaps: true,   // 允許跳過缺失點
-                    scales: {
-                        x: { title: { display: true, text: 'Epoch' } },
-                        y: {
-                            title: { display: true, text: 'Accuracy (%)' },
-                            beginAtZero: false,
-                            ticks: {
-                                autoSkip: true,
-                                precision: 2, // 小數點位數
-                                callback: function(value) {
-                                    return value.toFixed(2); // 顯示 2 位小數
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // 當 WebSocket 連線成功
-            socket.onopen = function() {
-                console.log("WebSocket 已連線");
-                sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
-            };
-
-            // 從後端收到訊息
-            socket.onmessage = function(event) {
-                const output = document.getElementById('output');
-                const data = event.data;
-
-                // 更新訓練曲線（分開解析 loss 與 val_loss）
-                window.allEpochs = window.allEpochs || [];
-                window.allLoss = window.allLoss || [];
-                window.allValLoss = window.allValLoss || [];
-                window.allMae = window.allMae || [];
-                window.allValMae = window.allValMae || [];
-                
-
-                // 嘗試抓取 Epoch 編號
-                let epochMatch = data.match(/Epoch\s+(\d+)\/\d+/);
-                if (epochMatch) {
-                    const epoch = parseInt(epochMatch[1]);
-                    window.allEpochs.push(epoch);
-                }
-
-                // 解析 loss
-                let lossMatch = data.match(/loss:\s*([\d.]+)/);
-                if (lossMatch) {
-                    const loss = parseFloat(lossMatch[1]);
-                    if (window.allLoss.length < window.allEpochs.length) {
-                        window.allLoss.push(loss);
-                    } else {
-                        window.allLoss[window.allEpochs.length - 1] = loss;
-                    }
-                    LossChart.data.datasets[0].data = window.allLoss.slice(-50);
-                }
-                // 抓 test/val loss（注意這裡是 val_loss）
-                let vallossMatch = data.match(/val_loss:\s*([\d.]+)/);
-                if (vallossMatch) {
-                    const val_loss = parseFloat(vallossMatch[1]);
-                    if (window.allValLoss.length < window.allEpochs.length) {
-                        window.allValLoss.push(val_loss);
-                    } else {
-                        window.allValLoss[window.allEpochs.length - 1] = val_loss;
-                    }
-                    LossChart.data.datasets[1].data = window.allValLoss.slice(-50);
-                }
-
-                // 抓 train/acc（注意這裡是 mae）
-                let accMatch = data.match(/mae:\s*([\d.]+)/);
-                if (accMatch) {
-                    const mae = parseFloat(accMatch[1]);
-                    const acc = (100 - mae); // ← 轉換為百分比
-                    //const acc = parseFloat(accMatch[1]);
-                    if (window.allMae.length < window.allEpochs.length) {
-                        window.allMae.push(acc);
-                    } else {
-                        window.allMae[window.allEpochs.length - 1] = acc;
-                    }
-                    AccChart.data.datasets[0].data = window.allMae.slice(-50);
-                }
-                // 抓 test/val_acc（注意這裡是 val_mae）
-                let valaccMatch = data.match(/val_mae:\s*([\d.]+)/);
-                if (valaccMatch) {
-                    const val_mae = parseFloat(valaccMatch[1]);
-                    const val_acc = (100 - val_mae)
-                    //const mae = parseFloat(valaccMatch[1]);
-                    if (window.allValMae.length < window.allEpochs.length) {
-                        window.allValMae.push(val_acc);
-                    } else {
-                        window.allValMae[window.allEpochs.length - 1] = val_acc;
-                    }
-                    AccChart.data.datasets[1].data = window.allValMae.slice(-50);
-                }
-
-                LossChart.data.labels = window.allEpochs.slice(-50);
-                LossChart.update();
-                AccChart.data.labels = window.allEpochs.slice(-50);
-                AccChart.update();
-
-                // 寫入執行結果
-                output.value += data + "\n";
-                output.scrollTop = output.scrollHeight;
-
-                // 收到 finish 關鍵字
-                if (data.includes("__FINISHED__")) {       
-                    runTrainButton.disabled = false;
-                    runTrainButton.innerHTML = '▶️ 執行模型訓練';
-                }
-                console.log(data);
-            };
-
-            // 執行按鈕動作
-            runTrainButton.addEventListener('click', function() {
-                runTrainButton.disabled = true;
-                runTrainButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 執行中...';
-
-                const form = document.querySelector('form');
-                const formData = new FormData(form);
-                const data = {
-                    action: 'run-train',
-                    model: formData.get('model'),
-                    dataset: formData.get('dataset'),
-                    epochs: formData.get('epochs'),
-                    batch_size: formData.get('batch_size'),
-                    learning_rate: formData.get('learning_rate'),
-                    validation_freq: formData.get('validation_freq'),
-                    checkpoint_path: formData.get('checkpoint_path')
-                };
-
-                // 清空舊曲線
-                LossChart.data.labels = [];
-                LossChart.data.datasets.forEach(ds => ds.data = []);
-                window.allLoss = [];
-                window.allValLoss = [];
-                LossChart.update();
-
-                AccChart.data.labels = [];
-                AccChart.data.datasets.forEach(ds => ds.data = []);
-                window.allMae = [];
-                window.allValMae = [];
-                AccChart.update();
-
-                socket.send(JSON.stringify(data));
-            });
-        });
-    </script>
-</body>
-</html>
+{% block scripts %}
+<script src="{% static 'js/model_train.js' %}"></script>
+{% endblock %}

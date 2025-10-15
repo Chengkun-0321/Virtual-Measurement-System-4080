@@ -1,0 +1,88 @@
+body {
+    background: #f9f9f9;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 登入容器 */
+.login-card {
+    max-width: 420px;
+    padding: 50px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    text-align: center;
+    transform: scale(1.05);
+}
+
+/* 標題 */
+.login-card h2 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 30px;
+    color: #111;
+}
+
+/* 輸入框 */
+.login-card input {
+    border-radius: 30px;
+    padding: 16px 22px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    width: 100%;
+    outline: none;
+    font-size: 17px;
+    background: #f5f5f5;
+    transition: all 0.3s ease;
+}
+
+.login-card input:focus {
+    border-color: #d9534f;
+    background: #fff;
+    box-shadow: 0 0 6px rgba(217,83,79,0.4);
+}
+
+/* 登入按鈕 */
+.login-card button {
+    border-radius: 30px;
+    padding: 14px;
+    width: 100%;
+    background: #d9534f;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-card button:hover {
+    background: #c9302c;
+}
+
+/* 條款 */
+.login-card .terms {
+    font-size: 1px;
+    color: #888;
+    margin-top: 15px;
+}
+.login-card .terms a {
+    color: #d9534f;
+    text-decoration: none;
+}
+.login-card .terms a:hover {
+    text-decoration: underline;
+}
+
+.login-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-wrapper h1 {
+    font-size: 60px;   /* 比 h2 的 32px 大 */
+    font-weight: 900;  /* 更粗 */
+    color: #b22222;    /* 深紅色，呼應登入按鈕 */
+    margin-bottom: 25px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* 小陰影增加立體感 */
+}

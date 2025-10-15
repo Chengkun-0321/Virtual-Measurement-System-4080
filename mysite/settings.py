@@ -9,127 +9,178 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+# -----------------------------
+# 1. 專案基本資訊
 from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# 專案根目錄
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# ⚠️ 保密金鑰，正式環境請不要公開
 SECRET_KEY = "django-insecure-#8vjea41^0j20&322yy5$%ixu6sxxas$ylj!fyui73xpt!(@$&"
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True                                # Debug 模式，開發用 True，正式環境請改 False
+ALLOWED_HOSTS = ['140.137.41.136', '*']     # 允許存取的主機 (IP 或網域)
 
-ALLOWED_HOSTS = ['140.137.41.136', '*']
 
-
+# -----------------------------
+# 2. 已安裝的應用程式
 # Application definition
-
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    'channels',
-    'blog',
+    "django.contrib.admin",        # Django 後台
+    "django.contrib.auth",         # 使用者與權限管理
+    "django.contrib.contenttypes", # ContentType 框架 (權限系統需要)
+    "django.contrib.sessions",     # Session 支援
+    "django.contrib.messages",     # 訊息框架 (ex: 登入提示)
+    "django.contrib.staticfiles",  # 靜態檔案管理
+
+    # 第三方套件
+    'channels',                    # Django Channels (WebSocket 支援)
+
+    # 自訂 app
+    'blog',                        # 你自己的 app：blog
 ]
 
+# -----------------------------
+# 3. 中介層設定
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.security.SecurityMiddleware",            # 提供安全性防護 (HTTPS, header 設定)
+    "django.contrib.sessions.middleware.SessionMiddleware",     # Session 管理
+    "django.middleware.common.CommonMiddleware",                # 處理常見 HTTP 功能 (例如禁止某些 header)
+    "django.middleware.csrf.CsrfViewMiddleware",                # CSRF 防護
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # 登入驗證
+    "django.contrib.messages.middleware.MessageMiddleware",     # 訊息管理
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",   # 防點擊劫持
 ]
 
+# -----------------------------
+# 4. URL 與模板
+# 路由與模板
 ROOT_URLCONF = "mysite.urls"
 
+# 專案主要的 URL 設定檔。
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True, #是 True，Django 才會去找 app 內部的 templates/
+        "BACKEND": "django.template.backends.django.DjangoTemplates",   # 使用 Django Template 引擎
+        "DIRS": [],                                                     # 額外的模板資料夾 (目前空的)
+        "APP_DIRS": True,                                               # 啟用後，會自動尋找各個 app 裡的 `templates/`
         "OPTIONS": {
             "context_processors": [
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",           # 可以在模板裡用 `request`
+                "django.contrib.auth.context_processors.auth",          # 使用者資訊可用於模板
+                "django.contrib.messages.context_processors.messages",  # messages 系統可用於模板
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = "mysite.wsgi.application"
-ASGI_APPLICATION = 'mysite.asgi.application'
+# -----------------------------
+# 5. WSGI / ASGI 與 Channels
+WSGI_APPLICATION = "mysite.wsgi.application"                # 給傳統 HTTP 用
+ASGI_APPLICATION = 'mysite.asgi.application'                # 給 WebSocket 用 (Django Channels)
 
 # 使用預設 in-memory channel layer (開發用)
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],  # 你剛裝的 Redis
+        },
     },
 }
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
 
+# -----------------------------
+# 6. 資料庫
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.sqlite3", # 使用 SQLite (開發方便)
+        "NAME": BASE_DIR / "db.sqlite3",        # 資料庫檔案路徑
     }
 }
 
-
-# Password validation
+# -----------------------------
+# 7. 驗證設定
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",},  # 防止密碼和使用者資訊太像
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},            # 最小長度檢查
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},           # 防止常見密碼 (ex: 123456)
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},          # 不允許全數字
 ]
 
-
-# Internationalization
+# -----------------------------
+# 8. 語言與時區
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
+LANGUAGE_CODE = "en-us"     # 預設語言
+TIME_ZONE = "UTC"           # 預設時區
+USE_I18N = True             # 啟用國際化 (多語系)
+USE_TZ = True               # 啟用時區支援
 
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
-USE_TZ = True
-
-
+# -----------------------------
+# 9. 靜態與媒體檔
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = '/static/'
+# 靜態檔案 URL 前綴
+STATIC_URL = '/static/'                         # 收集後存放位置
+# STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+MEDIA_URL = '/media/'                           # 使用者上傳檔案 URL 前綴
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')    # 使用者上傳檔案存放路徑
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# -----------------------------
+# 10. 登入登出導向
+LOGIN_URL = '/login/'               # 未登入要導向這裡
+LOGIN_REDIRECT_URL = '/home/'       # 登入成功後導向
+LOGOUT_REDIRECT_URL = '/login/'     # 登出成功後導向
 
-# settings.py
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
-# STATICFILES_DIRS = [BASE_DIR / "static"]
+# -----------------------------
+# 11. Session 設定時間 (單位：秒)
+SESSION_COOKIE_AGE = 60 * 30            # 30 分鐘
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # 是否在瀏覽器關閉時過期
+SESSION_SAVE_EVERY_REQUEST = True       # 是否每次請求都刷新 session 過期時間 (滑動過期)
+
+
+# -----------------------------
+# 12. 日誌設定
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "Log.log",
+            "formatter": "standard",
+        },
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["console", "file"],
+    },
+}

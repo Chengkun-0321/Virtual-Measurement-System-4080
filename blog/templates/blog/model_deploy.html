@@ -1,0 +1,88 @@
+{% extends "blog/base/yes_login.html" %}
+{% load static %}
+
+{% block title %}部署模型{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/model_deploy.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <br>
+    <!-- 頁面標題 -->
+    <h2 class="mb-4 text-center">🔰 部署模型</h2>
+
+    <!-- 伺服器 連線提示 -->
+    <div id="ssh-status" class="text-center mb-3">
+        <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
+    </div>
+
+    <!-- 合併表單與模型選擇為一排 -->
+    <div class="d-flex justify-content-center align-items-end gap-4 flex-wrap mb-4">
+
+        <!-- 上傳區 -->
+        <form id="upload-form" enctype="multipart/form-data" class="d-flex align-items-end gap-2 flex-wrap">
+            <div>
+                <label for="csv-file" class="form-label fw-bold">匯入製程參數:</label>
+                <!--<input type="file" id="csv-file" name="file" accept=".csv" class="form-control">-->
+                <input type="file" id="npy-file" name="file" accept=".npy" class="form-control">
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">上傳並預覽資料</button>
+            </div>
+            <div>
+                <a href="{% url 'download_sample' %}" class="btn btn-outline-secondary">下載提供的製程參數資料</a>
+            </div>
+        </form>
+
+        <!-- 模型選擇區 -->
+        <div class="d-flex align-items-end gap-2 flex-wrap">
+            <div>
+                <label for="model-select" class="form-label fw-bold">選擇模型：</label>
+                <select id="model-select" class="form-select w-auto"></select>
+            </div>
+            <div>
+                <button id="predict-btn" class="btn btn-success">執行預測</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-md-10 text-center">
+            <h5>上傳資料檢視區</h5>
+        </div>
+        <div class="col-md-2 text-center">
+            <h5>預測顯示區</h5>
+        </div>
+    </div>
+
+    <div class="scroll-wrapper d-flex">
+        <!-- 左邊 -->
+        <div id="data-table-container" class="table-responsive mb-4" style="max-height: 400px; overflow-y: auto; width: 83%;">
+            <table id="data-table" class="table table-bordered table-sm">
+                <thead class="table-light"></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- 右邊 -->
+        <div id="prediction-table-container" class="table-responsive mb-4" style="max-height: 400px; overflow-y: auto; width: 15%; margin-left: auto;">
+            <table id="prediction-table" class="table table-bordered table-sm">
+                <thead class="table-light">
+                    <tr><th>#</th><th>預測值</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 預測結果 -->
+    <div id="prediction-result" class="alert alert-info d-none"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/model_deploy.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,37 @@
+#data-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+}
+
+/* 第一欄（勾選框）寬度窄一點 */
+#data-table th:first-child,
+#data-table td:first-child {
+    min-width: 50px;
+    max-width: 50px;
+    width: 50px;
+    text-align: center;
+}
+
+/* 其他欄統一寬度 */
+#data-table th:not(:first-child),
+#data-table td:not(:first-child) {
+    width: 120px !important;   /* 固定欄寬 */
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scroll-wrapper {
+    display: flex;
+    height: 400px;
+}
+
+#data-table-container,
+#prediction-table-container {
+    overflow-y: scroll;
+}

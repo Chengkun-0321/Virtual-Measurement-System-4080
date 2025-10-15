@@ -1,0 +1,30 @@
+static/
+├── admin/                  ← 如果你要覆蓋 Django admin 的樣式或靜態檔
+│   ├── css/
+│   ├── img/
+│   └── js/
+│
+├── css/                    ← 前端頁面共用樣式
+│   ├── base.css
+│   ├── login.css
+│   ├── model_train.css
+│   ├── model_test.css
+│   ├── model_deploy.css
+│   ├── model_manage.css
+│   └── data_analysis.css
+│
+├── js/                     ← 前端互動邏輯
+│   ├── base.js
+│   ├── login.js
+│   ├── model_train.js
+│   ├── model_test.js
+│   ├── model_deploy.js
+│   ├── model_manage.js
+│   └── data_analysis.js
+│
+├── img/                    ← 前端會用到的圖片 (logo、icon、背景圖…)
+│   └── ...
+│
+└── data/                   ← 測試用的資料檔
+    ├── test-data.csv
+    └── test-data.npy

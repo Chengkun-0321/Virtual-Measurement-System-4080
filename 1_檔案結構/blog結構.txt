@@ -1,0 +1,36 @@
+使用python manage.py startapp blog自動產生
+
+blog作用「功能模組」
+
+blog/ 
+├── __pycache__/
+├── templates/                  ←放這個app專用的HTML模板
+│   └── blog/
+│       ├── base/
+│       │   ├── _navbar.html    ←導覽列
+│       │   ├── no_login.html   ←沒登入 header 設定
+│       │   └── yes_login.html  ←有登入 header 設定 
+|       |
+│       ├── data_analysis.html  ←資料分析頁面
+│       ├── home.html           ←首頁
+│       ├── login.html          ←登入頁面
+│       ├── model_deploy.html   ←模型部署頁面
+│       ├── model_manage.html   ←管理模型頁面
+│       ├── model_test.html     ←模型測試頁面
+│       └── model_train.html    ←模型訓練頁面
+|
+├── views/                      ←資料夾下內容對應 templates 下 HTML 頁面，寫畫面邏輯（回傳HTML、處理表單）
+│   ├── __init__.py             ←模組化
+│   ├─ data_analysis.py
+│   ├─ forgot_password.py
+│   ├─ home.py
+│   └──...
+|
+├── __init__.py
+├── admin.py                    ←將資料表註冊到後台管理
+├── apps.py                     ←註冊app的設定資料
+├── consumers.py                ←類似 Django 的 views.py，但處理 WebSocket 邏輯
+├── models.py                   ←定義資料表結構（欄位、關聯）
+├── routing.py                  ←類似 Django 的 urls.py，但處理 WebSocket
+├── tests.py    
+└── urls.py                     ←定義這個app的網址路徑

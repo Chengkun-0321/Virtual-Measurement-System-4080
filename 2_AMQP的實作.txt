@@ -1,0 +1,10 @@
+# 安裝並啟動 RabbitMQ 伺服器
+安裝 RabbitMQ
+sudo apt-get install rabbitmq-server
+設定開機自動啟動
+sudo systemctl enable rabbitmq-server
+啟動 RabbitMQ
+sudo systemctl start rabbitmq-server
+
+檢查它是否啟動
+sudo systemctl status rabbitmq-server

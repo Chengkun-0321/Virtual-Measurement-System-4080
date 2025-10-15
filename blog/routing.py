@@ -8,4 +8,7 @@ from . import consumers
 websocket_urlpatterns = [
     # 當網址為 ws/train/ 時，使用 TrainConsumer 處理 WebSocket 連線
     re_path(r'ws/CMD/$', consumers.CMDConsumer.as_asgi()),
+    re_path(r"ws/TRAIN/$", consumers.TrainingConsumer.as_asgi()),
+    re_path(r"ws/TEST/$", consumers.TestingConsumer.as_asgi()),
+    re_path(r"ws/DEPLOY/$", consumers.DeployingConsumer.as_asgi()),
 ]

@@ -1,0 +1,78 @@
+db.sqlite3
+└── tables/
+    ├── auth_user/                   ← 使用者帳號資料表
+    │   ├── id (PK)                  ← 使用者 ID
+    │   ├── username                 ← 使用者名稱
+    │   ├── password                 ← 密碼 (hash)
+    │   ├── email                    ← 電子郵件
+    │   ├── is_superuser             ← 是否超級管理員
+    │   ├── is_staff                 ← 是否能登入 Django Admin
+    │   ├── is_active                ← 是否啟用帳號
+    │   ├── last_login               ← 上次登入時間
+    │   └── date_joined              ← 註冊時間
+    │   **功能**：存放所有網站使用者的基本資訊與登入憑證
+    │
+    ├── auth_group/                  ← 群組資料表
+    │   ├── id (PK)
+    │   └── name                     ← 群組名稱 (唯一)
+    │   **功能**：角色管理，將使用者分類成群組
+    │
+    ├── auth_permission/             ← 權限資料表
+    │   ├── id (PK)
+    │   ├── name                     ← 權限名稱
+    │   ├── codename                 ← 權限代號 (add, change, delete, view)
+    │   └── content_type_id (FK)     ← 對應的 Model 類型
+    │   **功能**：定義所有 Model 對應的操作權限
+    │
+    ├── auth_group_permissions/      ← 群組 ↔ 權限 關聯表
+    │   ├── id (PK)
+    │   ├── group_id (FK)            ← 群組
+    │   └── permission_id (FK)       ← 權限
+    │   **功能**：控制「群組擁有哪些權限」
+    │
+    ├── auth_user_groups/            ← 使用者 ↔ 群組 關聯表
+    │   ├── id (PK)
+    │   ├── user_id (FK)             ← 使用者
+    │   └── group_id (FK)            ← 群組
+    │   **功能**：控制「使用者隸屬於哪些群組」
+    │
+    ├── auth_user_user_permissions/  ← 使用者 ↔ 權限 關聯表
+    │   ├── id (PK)
+    │   ├── user_id (FK)             ← 使用者
+    │   └── permission_id (FK)       ← 權限
+    │   **功能**：控制「使用者直接擁有哪些權限」
+    │
+    ├── django_admin_log/            ← 後台操作紀錄
+    │   ├── id (PK)
+    │   ├── action_time              ← 操作時間
+    │   ├── object_id                ← 被操作物件的 ID
+    │   ├── object_repr              ← 物件字串描述
+    │   ├── action_flag              ← 操作類型 (新增/修改/刪除)
+    │   ├── change_message           ← 修改的細節
+    │   ├── user_id (FK)             ← 執行操作的使用者
+    │   └── content_type_id (FK)     ← 被操作的 Model 類型
+    │   **功能**：記錄誰在 Django Admin 做了什麼事
+    │
+    ├── django_content_type/         ← Model 類型資料表
+    │   ├── id (PK)
+    │   ├── app_label                ← 所屬的 App (ex: blog)
+    │   └── model                    ← Model 名稱 (ex: post)
+    │   **功能**：Django 用來追蹤每個 model 的類型
+    │
+    ├── django_migrations/           ← Migration 紀錄表
+    │   ├── id (PK)
+    │   ├── app                      ← App 名稱
+    │   ├── name                     ← Migration 檔案名稱
+    │   └── applied                  ← 執行時間
+    │   **功能**：避免重複執行已跑過的 migration
+    │
+    ├── django_session/              ← 使用者 Session 資料表
+    │   ├── session_key (PK)         ← session 唯一 ID
+    │   ├── session_data             ← 加密後的 session 資料 (登入狀態)
+    │   └── expire_date              ← 過期時間
+    │   **功能**：管理使用者登入狀態 (誰還在登入中)
+    │
+    └── sqlite_sequence/             ← SQLite 系統表
+        ├── name                     ← 資料表名稱
+        └── seq                      ← AUTOINCREMENT 當前數值
+        **功能**：SQLite 內部用，記錄自動遞增的最新值

@@ -1,0 +1,12 @@
+manage.py = Django 專案的 命令列工具入口
+
+• 功能：
+	• 設定環境變數 → 知道用哪個 settings.py
+	• 呼叫 Django 的管理工具 → 執行各種指令
+
+• 常用操作：
+python manage.py runserver          # 啟動伺服器
+python manage.py makemigrations     # 建立資料表遷移
+python manage.py migrate            # 套用資料表遷移
+python manage.py createsuperuser    # 建立後台管理員
+python manage.py shell              # 進入 Django Shell

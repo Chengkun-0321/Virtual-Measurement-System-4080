@@ -1,177 +1,101 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>模型訓練頁面</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="d-flex flex-column min-vh-100" style="font-family: '標楷體';">
-    {% include "blog/_navbar.html" %}
-    <div class="container">
-        <br>
-        <!-- 頁面標題 -->
-        <h2 class="mb-4 text-center">🧪 模型測試頁面</h2>
+{% extends "blog/base/yes_login.html" %}
+{% load static %}
 
-        <!-- 伺服器 連線提示 -->
-        <div id="ssh-status" class="text-center mb-3">
-            <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
-        </div>
+{% block title %}模型測試{% endblock %}
 
-        <!-- 表單與混淆矩陣區塊 -->
-        <div class="row">
-            <div class="col-md-6" style="flex: 0 0 60%;">
-                <div class="card p-4 shadow-sm fs-5 d-flex justify-content-center" style="height: 450px;">
-                    <h5 class="card-title text-center">測試參數設定及權重選擇</h5>
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label">選擇模型架構</label>
-                                <select name="model" class="form-select">
-                                    <option value="Mamba">Mamba</option>
-                                    <option value="ResNet">ResNet</option>
-                                    <option value="LSTM">LSTM</option>
-                                </select>
-                            </div>
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/model_test.css' %}?v=1">
+{% endblock %}
 
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label">測試資料來源</label>
-                                <select name="dataset" class="form-select">
-                                    <option value="PETBottle">PETBottle</option>
-                                    <option value="TFT">TFT</option>
-                                </select>
-                            </div>
+{% block content %}
+<div class="container">
+    <br>
+    <h2 class="mb-4 text-center">🧪 模型測試頁面</h2>
 
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label">選擇 Checkpoint 檔案</label>
-                                <select name="checkpoint_path" class="form-select">
-                                    {% for folder in checkpoint_folders %}
-                                    <option value="{{ folder }}">{{ folder }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+    <!-- 伺服器連線提示 -->
+    <div id="ssh-status" class="text-center mb-3">
+        <span class="text-warning fw-bold">🟡 伺服器連線中...</span>
+    </div>
 
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label">mean</label>
-                                <input type="text" name="mean" class="form-control" value="65.0">
-                            </div>
-
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label">boundary_upper</label>
-                                <input type="text" name="boundary_upper" class="form-control" value="70.0">
-                            </div>
-
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label">boundary_lower</label>
-                                <input type="text" name="boundary_lower" class="form-control" value="60.0">
-                            </div>
+    <!-- 表單 + 混淆矩陣 -->
+    <div class="row">
+        <!-- 左側表單 -->
+        <div class="col-lg-7 col-md-6 mb-4">
+            <div class="card p-4 shadow-sm fs-5 h-100">
+                <h5 class="card-title text-center">測試參數設定</h5>
+                <form id="test-form" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">選擇模型架構</label>
+                            <select name="model" class="form-select">
+                                <option value="Mamba">Mamba</option>
+                                <option value="ResNet">ResNet</option>
+                                <option value="LSTM">LSTM</option>
+                            </select>
                         </div>
 
-                        <!-- 執行按鈕 -->
-                        <div class="d-grid">
-                            <button type="button" class="btn btn-success btn-lg" id="run-test">▶️ 執行模型測試</button>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">測試資料來源</label>
+                            <select name="dataset" class="form-select">
+                                <option value="PETBottle">PETBottle</option>
+                                <option value="TFT">TFT</option>
+                            </select>
                         </div>
-                    </form>
-                </div>
-            </div>
 
-            <!-- 右側最佳結果 -->
-            <div class="col-md-6 text-center" style="flex: 0 0 40%;">
-                <div class="card p-4 shadow-sm fs-5 h-100 text-center">
-                    <h5 class="card-title">🔍 混淆矩陣</h5>
-                    <p id="best-result" class="fs-5">
-                        <img id="confusion-matrix" src="" alt="" style="width: 90.5%;">
-                        <span id="confusion-hint" class="text-muted">尚未開始測試...</span>
-                    </p>
-                </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">選擇 Checkpoint 檔案</label>
+                            <select name="checkpoint_path" id="checkpoint-select" class="form-select">
+                                <option disabled selected>載入中...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">mean</label>
+                            <input type="text" name="mean" class="form-control" value="65.0">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">boundary_upper</label>
+                            <input type="text" name="boundary_upper" class="form-control" value="70.0">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">boundary_lower</label>
+                            <input type="text" name="boundary_lower" class="form-control" value="60.0">
+                        </div>
+                    </div>
+
+                    <!-- 按鈕 -->
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-success btn-lg" id="run-test">
+                            ▶️ 執行模型測試
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-        
-        <!-- 真實 vs 預測圖 -->
-        <br>
-        <h5 class="card-title text-center">📈 真實 vs 預測圖</h5>
-        <img id="ground-truth" src=""  alt="" style="width: 100%;">
-        <p id="groundtruth-hint" class="text-muted text-center">尚未開始測試...</p>
 
-        <!-- 執行結果區塊（改為 textarea 即時顯示）-->
-        <div class="card mt-5 shadow-sm" style="display:none;">
-            <div class="card-header">
-                📤 執行結果
-            </div>
-            <div class="card-body">
-                <textarea id="output" class="form-control bg-light" rows="15" style="resize: none;" readonly></textarea>
+        <!-- 右側混淆矩陣 -->
+        <div class="col-lg-5 col-md-6 mb-4">
+            <div class="card p-4 shadow-sm fs-5 h-100 text-center">
+                <h5 class="card-title">🔍 混淆矩陣</h5>
+                <img id="confusion-matrix" src="" alt="" class="img-fluid rounded">
+                <p id="confusion-hint" class="text-muted">尚未開始測試...</p>
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const runTestButton = document.getElementById('run-test');
-            const sshStatus = document.getElementById('ssh-status');
-            const outputArea = document.getElementById('output');
-            const confusionMatrixImg = document.getElementById('confusion-matrix');
-            const groundTruthImg = document.getElementById('ground-truth');
 
-            const socket = new WebSocket("ws://" + window.location.host + "/ws/CMD/");
+    <!-- Ground Truth 圖 -->
+    <br>
+    <div class="card p-4 shadow-sm text-center">
+        <h5 class="card-title">📈 真實 vs 預測圖</h5>
+        <img id="ground-truth" src="" alt="" class="img-fluid rounded">
+        <p id="groundtruth-hint" class="text-muted">尚未開始測試...</p>
+    </div>
+</div>
+{% endblock %}
 
-            // WebSocket 連線成功
-            socket.onopen = function() {
-                console.log("✅ WebSocket 已連線");
-                sshStatus.innerHTML = `<span class="text-success fw-bold">🟢 伺服器 已連線</span>`;
-            };
-
-            // WebSocket 收到後端訊息
-            socket.onmessage = function(event) {
-                console.log("後端回應:", event.data);
-                outputArea.value += event.data + "\n";
-
-                // 檢查是否結束測試
-                if (outputArea.value.includes("finsh test!")) {
-                    console.log("✅ 收到 finsh test!，更新結果圖片");
-                    runTestButton.disabled = false;
-                    runTestButton.innerHTML = '▶️ 執行模型測試';
-
-                    const checkpointPath = document.querySelector('select[name="checkpoint_path"]').value;
-                    const timestamp = new Date().getTime(); // 防止 cache
-                    document.getElementById('confusion-matrix').src = `/api/get_image/${checkpointPath}/混淆矩陣.png?t=${timestamp}`;
-                    document.getElementById('ground-truth').src = `/api/get_image/${checkpointPath}/ground_truth.png?t=${timestamp}`;
-                    document.getElementById('confusion-hint').style.display = 'none';
-                    document.getElementById('groundtruth-hint').style.display = 'none';
-                }
-            };
-
-            // 按鈕動作
-            runTestButton.addEventListener('click', function() {
-                console.log("按下執行模型測試按鈕");
-
-                const form = document.querySelector('form');
-                const formData = new FormData(form);
-                const data = {
-                    action: 'run-test',
-                    model: formData.get('model'),
-                    dataset: formData.get('dataset'),
-                    checkpoint_path: formData.get('checkpoint_path'),
-                    mean: formData.get('mean'),
-                    boundary_upper: formData.get('boundary_upper'),
-                    boundary_lower: formData.get('boundary_lower')
-                };
-
-                // 鎖定按鈕防止重複送出
-                runTestButton.disabled = true;
-                runTestButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 執行中...';
-                outputArea.value = ""; // 清空之前的輸出
-
-                if (socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify(data));  // ✅ 發送資料給後端
-                    console.log("已發送資料:", data);
-                } else {
-                    console.error("WebSocket 尚未連線");
-                    alert("WebSocket 尚未連線，請稍後再試");
-                    runTestButton.disabled = false;
-                    runTestButton.innerHTML = '▶️ 執行模型測試';
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+{% block scripts %}
+<script src="{% static 'js/model_test.js' %}"></script>
+{% endblock %}
