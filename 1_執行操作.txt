@@ -57,6 +57,16 @@ conda activate django
 內部連線網址--> http://127.0.0.1:8000/
 
 
+# Celery Worker 啟動
+conda activate django
+celery -A mysite worker -l info
+
+# radis 中繼站服務
+sudo systemctl start redis-server
+radis 開啟確認（出現「PONG」代表成功）--> redis-cli ping
+radis 內容顯示--> redis-cli monitor
+
 # 網頁伺服器執行
+conda activate django
 daphne -b 0.0.0.0 -p 8000 mysite.asgi:application
 遠端連線網址--> http://140.137.41.136:7780/
