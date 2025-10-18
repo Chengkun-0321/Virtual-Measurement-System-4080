@@ -36,17 +36,52 @@
                     <a class="nav-link fs-5 text-dark" href="{% url 'data_analysis' %}">資料分析</a>
                 </li>
             </ul>
-            <!-- 登出按鈕放在右側 -->
+            
+            <!-- 右側導覽列 (包含排程 + 使用者 + 登出) -->
             <ul class="navbar-nav align-items-center">
+                <!-- 任務排程下拉選單 -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link fs-5 text-dark dropdown-toggle" href="#" id="queueDropdown" role="button" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                        📋 排程
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end border border-dark shadow p-3 rounded-4 mt-2" 
+                         aria-labelledby="queueDropdown" 
+                         style="width: 320px; max-height: 450px; overflow-y: auto; background-color: #fff;">
+                        
+                        <!-- 卡片標題 -->
+                        <h6 class="fw-bold text-center mb-3 fs-4">任務排程狀態</h6>
+
+                        <!-- 執行中任務 -->
+                        <div class="mb-2">
+                            <p class="fw-bold mb-1 text-success fs-5">目前執行排程：</p>
+                            <ul class="list-unstyled mb-0" id="running-tasks">
+                                <li><span class="text-muted">目前沒有執行中的任務</span></li>
+                            </ul>
+                        </div>
+
+                        <hr>
+
+                        <!-- 等待中任務 -->
+                        <div>
+                            <p class="fw-bold mb-1 text-warning fs-5">排程等待：</p>
+                            <ul class="list-unstyled mb-0" id="waiting-tasks">
+                                <li><span class="text-muted">目前沒有等待的任務</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+                <!-- 使用者名稱顯示 -->
                 <li class="nav-item me-3">
-                    <span class="navbar-text fw-bold text-dark">
+                    <span class="navbar-text fw-bold text-dark fs-6">
                         👤 {{ request.user.username }}
                     </span>
                 </li>
+                <!-- 登出按鈕 -->
                 <li class="nav-item">
                     <form id="logout-form" method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger btn-sm ms-2">
+                        <button type="submit" class="btn btn-outline-danger btn-sm ms-2 fs-6">
                             🚪 登出
                         </button>
                     </form>

@@ -59,7 +59,7 @@ def train_model(self, model, dataset, epochs, batch_size, learning_rate, validat
                 "message": log_line
             }
         )
-        logger.info(f"將訊息送到前端 TRAIN/: {log_line}")
+        logger.info(f"將訊息透過 redis 送到前端 TRAIN/: {log_line}")
 
     process.wait()
     err = process.stderr.read().decode()
@@ -126,7 +126,7 @@ def test_model(self, model, dataset, checkpoint, mean, upper, lower):
                 "message": log_line
             }
         )
-        logger.info(f"將訊息送到前端 TEST/: {log_line}")
+        logger.info(f"將訊息透過 redis 送到前端 TEST/: {log_line}")
 
     process.wait()
     err = process.stderr.read().decode()
@@ -187,7 +187,7 @@ def predict_model(self, model_name, indices, data_json):
                 "deploying_group",
                 {"type": "deploying.log", "message": log_line}
             )
-            logger.info(f"將訊息送到前端 DEPLOY/:{log_line}")
+            logger.info(f"將訊息透過 redis 送到前端 DEPLOY/:{log_line}")
         
         pred_result = predictions.flatten().round(3).tolist()
 

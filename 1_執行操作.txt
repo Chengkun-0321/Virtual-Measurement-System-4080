@@ -34,10 +34,6 @@ zope.interface    7.2
 
 ---------------------------------------------
 
-# 虛擬環境
-conda activate django
-
-
 # 若出現錯誤 no such table: django_session
 1. 請在你的 Django 專案目錄中執行以下指令
     python manage.py migrate
@@ -56,15 +52,38 @@ conda activate django
 
 內部連線網址--> http://127.0.0.1:8000/
 
+# 外網執行
+啟動流程： RabbitMQ -> Redis -> Celery -> Django
+
+# 虛擬環境
+conda activate django
+
+# RadditMQ 服務（Message Broker）
+啟動服務：  sudo systemctl start rabbitmq-server
+關閉服務：  sudo systemctl stop rabbitmq-server
+重啟服務：  sudo systemctl restart rabbitmq-server
+查看狀態：  sudo systemctl status rabbitmq-server
+設定開機自動啟動：  sudo systemctl enable rabbitmq-server
+取消開機自動啟動：  sudo systemctl disable rabbitmq-server
+
+Web 管理介面開啟：  sudo rabbitmq-plugins enable rabbitmq_management
+Web 管理介面停用：  sudo rabbitmq-plugins disable rabbitmq_management
+-> http://localhost:15672 (預設帳號/密碼：guest / guest)
+
+# redis 中繼站服務（存任務結果）
+sudo systemctl start redis-server      # 啟動
+sudo systemctl stop redis-server       # 停止
+sudo systemctl restart redis-server    # 重啟
+sudo systemctl status redis-server     # 查看狀態
+sudo systemctl enable redis-server     # 開機自動啟動
+redis-cli ping                         # 開啟確認（出現「PONG」代表成功）
+redis-cli monitor                      # 內容顯示
 
 # Celery Worker 啟動
 conda activate django
-celery -A mysite worker -l info
+celery -A mysite worker -l info -c 1
+須設定只開一個 worker ， 印為預設(celery -A mysite worker -l info)是 4 個 worker
 
-# radis 中繼站服務
-sudo systemctl start redis-server
-radis 開啟確認（出現「PONG」代表成功）--> redis-cli ping
-radis 內容顯示--> redis-cli monitor
 
 # 網頁伺服器執行
 conda activate django
