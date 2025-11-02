@@ -1,0 +1,30 @@
+1. 請先確認.env 檔案裡的內容是否正確
+EMAIL_HOST_USER=要發送信件的email信箱
+EMAIL_HOST_PASSWORD=應用程式密碼(非登入密碼)
+p.s.應用程式密碼請參照: https://myaccount.google.com/apppasswords
+
+2. 開啟虛擬環境
+conda activate django
+
+3. 檢查是否有外網連線權限
+telnet smtp.gmail.com 587
+# 若顯示以下訊息則代表正常運作：
+'''
+Connected to smtp.gmail.com
+Escape character is '^]'.
+220 smtp.gmail.com ESMTP ...
+'''
+
+4. 再開啟 Django shell
+python manage.py shell
+
+5. 最後輸入發送測試指令
+# 若正常則會成功寄信到的地信箱
+from django.core.mail import send_mail
+send_mail(
+    subject='測試郵件',
+    message='這是一封測試信件。',
+    from_email='要發送信件的email信箱',
+    recipient_list=['目的地email信箱'],
+    fail_silently=False,
+)

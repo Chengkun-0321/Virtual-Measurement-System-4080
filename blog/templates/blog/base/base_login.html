@@ -1,0 +1,12 @@
+{% extends "blog/base/no_login.html" %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="login-card p-4 shadow rounded bg-white" style="width: 400px;">
+    {% block page_content %}{% endblock %}
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+# 終端機執行
+conda activate django
+python manage.py shell
+
+
+# -----------------------------
+# 檢查帳號
+from django.contrib.auth.models import User
+
+# 列出所有帳號
+for u in User.objects.all():
+    print(u.username, " | staff:", u.is_staff, " | superuser:", u.is_superuser)
+
+
+# -----------------------------
+# 註冊一般帳號
+from django.contrib.auth.models import User
+user = User.objects.create_user( # 建立一個普通使用者
+    username="testuser",     # 使用者帳號
+    password="test1234",     # 登入密碼
+    email="testuser@example.com"
+)
+print("✅ 建立完成：", user.username)
+
+
+# -----------------------------
+# 刪除帳號
+from django.contrib.auth.models import User
+user = User.objects.get(username="testuser") # 找到指定帳號
+user.delete() 
+
+print("🗑️ 帳號已刪除")

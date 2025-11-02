@@ -17,3 +17,5 @@ app.conf.update(
 
 # 自動發現 tasks.py
 app.autodiscover_tasks()
+
+import blog.celery_signals

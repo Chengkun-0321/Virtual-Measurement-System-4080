@@ -31,7 +31,9 @@ txaio             23.1.1
 typing_extensions 4.13.2
 wheel             0.45.1
 zope.interface    7.2
+dotenv            1.2.1
 
+pip install celery redis channels["daphne"]
 ---------------------------------------------
 
 # 若出現錯誤 no such table: django_session
@@ -49,14 +51,16 @@ zope.interface    7.2
 2. Daphne 啟動 python -m daphne mysite.asgi:application;  執行程式
 3. 終端機輸入 python manage.py runserver
 執行2.+ 3.指令結合：python -m daphne -p 8000 mysite.asgi:application
-
 內部連線網址--> http://127.0.0.1:8000/
+
 
 # 外網執行
 啟動流程： RabbitMQ -> Redis -> Celery -> Django
 
+
 # 虛擬環境
 conda activate django
+
 
 # RadditMQ 服務（Message Broker）
 啟動服務：  sudo systemctl start rabbitmq-server
@@ -70,6 +74,7 @@ Web 管理介面開啟：  sudo rabbitmq-plugins enable rabbitmq_management
 Web 管理介面停用：  sudo rabbitmq-plugins disable rabbitmq_management
 -> http://localhost:15672 (預設帳號/密碼：guest / guest)
 
+
 # redis 中繼站服務（存任務結果）
 sudo systemctl start redis-server      # 啟動
 sudo systemctl stop redis-server       # 停止
@@ -78,6 +83,7 @@ sudo systemctl status redis-server     # 查看狀態
 sudo systemctl enable redis-server     # 開機自動啟動
 redis-cli ping                         # 開啟確認（出現「PONG」代表成功）
 redis-cli monitor                      # 內容顯示
+
 
 # Celery Worker 啟動
 conda activate django

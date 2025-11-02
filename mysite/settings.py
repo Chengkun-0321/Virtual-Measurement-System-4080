@@ -9,10 +9,13 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 # -----------------------------
 # 1. 專案基本資訊
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # 專案根目錄
@@ -47,6 +50,7 @@ INSTALLED_APPS = [
     'blog',                        # 你自己的 app：blog
 ]
 
+
 # -----------------------------
 # 3. 中介層設定
 MIDDLEWARE = [
@@ -59,6 +63,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",   # 防點擊劫持
 ]
 
+
 # -----------------------------
 # 4. URL 與模板
 # 路由與模板
@@ -68,7 +73,7 @@ ROOT_URLCONF = "mysite.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",   # 使用 Django Template 引擎
-        "DIRS": [],                                                     # 額外的模板資料夾 (目前空的)
+        "DIRS": [os.path.join(BASE_DIR, 'blog', 'templates')],                                                     # 額外的模板資料夾 (目前空的)
         "APP_DIRS": True,                                               # 啟用後，會自動尋找各個 app 裡的 `templates/`
         "OPTIONS": {
             "context_processors": [
@@ -79,6 +84,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 # -----------------------------
 # 5. WSGI / ASGI 與 Channels
@@ -94,6 +100,7 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
 
 # -----------------------------
 # 6. 資料庫
@@ -115,6 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},          # 不允許全數字
 ]
 
+
 # -----------------------------
 # 8. 語言與時區
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -122,6 +130,7 @@ LANGUAGE_CODE = "en-us"     # 預設語言
 TIME_ZONE = "UTC"           # 預設時區
 USE_I18N = True             # 啟用國際化 (多語系)
 USE_TZ = True               # 啟用時區支援
+
 
 # -----------------------------
 # 9. 靜態與媒體檔
@@ -180,4 +189,41 @@ LOGGING = {
         "level": "INFO",
         "handlers": ["console", "file"],
     },
+}
+
+
+# -----------------------------
+# 13. 寄信設定
+# （開發用：把信印到 console）
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# DEFAULT_FROM_EMAIL = "no-reply@example.com"
+
+# 若要用本機 SMTP 測試（啟動：python -m smtpd -n -c DebuggingServer localhost:1025）
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "localhost"
+# EMAIL_PORT = 1025
+# EMAIL_USE_TLS = False
+# EMAIL_HOST_USER = ""
+# EMAIL_HOST_PASSWORD = ""
+
+# 用真實 SMTP（例如 Gmail / SendGrid / Mailgun）
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = "no-reply@yourdomain.com"
+
+
+# -----------------------------
+# 14. 把 Django 的 message tag 轉成 Bootstrap 的類別
+from django.contrib import messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: "secondary",
+    messages.INFO: "info",
+    messages.SUCCESS: "success",
+    messages.WARNING: "warning",
+    messages.ERROR: "danger",
 }

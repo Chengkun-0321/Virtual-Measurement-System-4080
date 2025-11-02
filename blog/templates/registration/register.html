@@ -1,7 +1,57 @@
 {% extends "blog/base/no_login.html" %}
+{% load static %}
 {% block title %}註冊{% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v=1">
+{% endblock %}
+
 {% block content %}
-  <h2>註冊新帳號</h2>
-  <p>這裡之後會做完整的註冊表單</p>
+<div class="login-card p-4 shadow rounded bg-white" style="width: 400px;">
+    <h2 class="mb-4 text-center">註冊新帳號</h2>
+
+    <form method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        <!-- 使用者名稱 -->
+        <div class="mb-3">
+            <label for="username" class="form-label">使用者名稱</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="請輸入使用者名稱" required>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" placeholder="請輸入 Email" required>
+        </div>
+
+        <!-- 密碼 -->
+        <div class="mb-3">
+            <label for="password1" class="form-label">密碼</label>
+            <input type="password" class="form-control" id="password1" name="password1" placeholder="請輸入密碼" required>
+        </div>
+
+        <!-- 確認密碼 -->
+        <div class="mb-3">
+            <label for="password2" class="form-label">確認密碼</label>
+            <input type="password" class="form-control" id="password2" name="password2" placeholder="請再次輸入密碼" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">註冊</button>
+    </form>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} text-center py-2">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="extra-links mt-3 text-center">
+        <a href="{% url 'login' %}">回登入頁</a> | 
+        <a href="{% url 'password_reset' %}">忘記密碼？</a>
+    </div>
+</div>
 {% endblock %}

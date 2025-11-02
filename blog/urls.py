@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 from blog.view import *
+from blog.view.views import *
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 
@@ -22,14 +23,41 @@ urlpatterns = [
     path("forgot_password/", forgot_password_view, name="forgot_password"),
 
     # 密碼重設流程
-    path("password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
-    path("password_reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
-    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
-    path("reset/done/", auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+    path(
+        "password_reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="registration/password_reset_form.html",
+            email_template_name="registration/password_reset_email.html",
+            subject_template_name="registration/password_reset_subject.txt",
+            html_email_template_name="registration/password_reset_email.html",
+        ),
+        name="password_reset",
+    ),
+    path(
+        "password_reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="registration/password_reset_done.html"
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "reset/<uidb64>/<token>/",
+        custom_password_reset_confirm,
+        name="password_reset_confirm",
+    ),
+    path(
+        "reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="registration/password_reset_complete.html"
+        ),
+        name="password_reset_complete",
+    ),
+
     
     path("home/", home_view, name="home"),
     # 模型相關
-    path("task/<str:task_id>/", task_status, name="task_status"),
+    path("api/tasks/", tasks_status, name="tasks_status"),
+    path("task/<str:task_id>/", Celery_task_status, name="task_status"),
 
     path("train/", train_view, name="train"),
     path("api/train/", train_api, name="train_api"),
