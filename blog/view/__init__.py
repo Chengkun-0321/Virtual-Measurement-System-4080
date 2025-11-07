@@ -1,4 +1,4 @@
-from .login import login_view, login_api, logout_view
+from .login import login_view, login_api, logout
 from .register import register_view
 from .forgot_password import forgot_password_view
 from .home import home_view

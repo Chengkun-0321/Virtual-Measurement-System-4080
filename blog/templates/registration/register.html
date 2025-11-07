@@ -10,7 +10,7 @@
 <div class="login-card p-4 shadow rounded bg-white" style="width: 400px;">
     <h2 class="mb-4 text-center">註冊新帳號</h2>
 
-    <form method="post" action="{% url 'register' %}">
+    <form method="post" action="{% url 'register_view' %}">
         {% csrf_token %}
         <!-- 使用者名稱 -->
         <div class="mb-3">
@@ -50,7 +50,7 @@
     {% endif %}
 
     <div class="extra-links mt-3 text-center">
-        <a href="{% url 'login' %}">回登入頁</a> | 
+        <a href="{% url 'login_view' %}">回登入頁</a> | 
         <a href="{% url 'password_reset' %}">忘記密碼？</a>
     </div>
 </div>

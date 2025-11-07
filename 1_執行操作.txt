@@ -95,3 +95,8 @@ celery -A mysite worker -l info -c 1
 conda activate django
 daphne -b 0.0.0.0 -p 8000 mysite.asgi:application
 遠端連線網址--> http://140.137.41.136:7780/
+
+
+# HTTPS 認證
+openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
+daphne -e ssl:8000:privateKey=key.pem:certKey=cert.pem mysite.asgi:application

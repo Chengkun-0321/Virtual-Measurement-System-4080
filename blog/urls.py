@@ -13,8 +13,8 @@ from blog.view.views import *
 # 用於在未登入/已登入時做導向
 def root_redirect(request):
     if request.user.is_authenticated:
-        return redirect('home')   # 已登入 -> home
-    return redirect('login')      # 未登入 -> login
+        return redirect('home_view')     # 已登入 -> home
+    return redirect('login_view')   # 未登入 -> login
 
 urlpatterns = [
     # 根路徑：根據是否登入導向不同頁面
@@ -22,11 +22,11 @@ urlpatterns = [
     path('', root_redirect, name='root'),
 
     # ---------- 認證與帳號相關 ----------
-    path("login/", login_view, name="login"),
-    path('logout/', logout_view, name='logout'),
-    path("login_api/", login_api, name="login_api"),
-    path("register/", register_view, name="register"),
-    path("forgot_password/", forgot_password_view, name="forgot_password"),
+    path("login/", login_view, name="login_view"),
+    path('logout/', logout, name='logout'),
+    path("api/login/", login_api, name="login_api"),
+    path("register/", register_view, name="register_view"),
+    path("forgot_password/", forgot_password_view, name="forgot_password_view"),
 
     # 密碼重設流程（採用 Django 內建 view，並指定 template）
     path(
@@ -61,7 +61,7 @@ urlpatterns = [
     ),
 
     # ---------- 主畫面 ----------
-    path("home/", home_view, name="home"),
+    path("home/", home_view, name="home_view"),
 
     # ---------- 任務與模型相關（API 與頁面） ----------
     # 取得任務列表狀態（例如 Celery 任務）

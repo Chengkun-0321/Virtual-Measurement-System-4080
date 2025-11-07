@@ -26,3 +26,10 @@ static/plt/*
 !static/heatmaps/.gitkeep
 !static/trainplot/.gitkeep
 !static/plt/.gitkeep
+
+# 忽略 logs 資料夾裡的所有檔案
+logs/*
+
+# https
+cert.pem
+key.pem
