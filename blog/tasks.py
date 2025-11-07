@@ -1,4 +1,5 @@
 # blog/tasks.py
+import json
 import os
 import logging
 import subprocess
@@ -8,7 +9,6 @@ from channels.layers import get_channel_layer
 
 import pandas as pd
 import numpy as np
-from tensorflow.keras.models import load_model
 
 logger = logging.getLogger(__name__)
 
@@ -148,66 +148,77 @@ def test_model(self, model, dataset, checkpoint, mean, upper, lower):
 @shared_task(bind=True)
 def predict_model(self, model_name, indices, data_json):
     """
-    Celery 任務：呼叫模型做預測
+    Celery 任務：呼叫 mamba 環境的 predict_code.py 做預測
     """
+    # 1. WebSocket 群組 (對應前端 DEPLOY)
     channel_layer = get_channel_layer()
+
+    # 2. 檔案與環境設定
+    model_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/")
+    venv_dir = "mamba"
+    py_file = "predict_code.py"
+    data_path = os.path.join(model_dir, "predict.json")
+
+    # 3. 儲存 data_json 到 predict.json（需轉成 dict 才能正確 dump）
+    print(f"👉 寫入 JSON 到: {data_path}")
+    if isinstance(data_json, str):
+        data_json = json.loads(data_json)
+
+    with open(data_path, "w") as f:
+        json.dump(data_json, f)
+
+    # 4. 建立執行指令（不阻塞 Django）
+    cmd = (
+        f"cd {model_dir} && "
+        f"source ~/anaconda3/etc/profile.d/conda.sh && "
+        f"conda activate {venv_dir} && "
+        f"python -u {py_file} "
+        f"--model {model_name} "      # 這裡 model_name 不用加 .h5
+    )
+    print(f"🚀 執行指令：{cmd}")
+
+    process = subprocess.Popen(
+        cmd, shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        executable="/bin/bash"
+    )
+
+    # 5. 即時讀取 stdout
     logs = []
-    try:
-        # 還原 DataFrame
-        selected_df = pd.read_json(data_json, orient="split")
+    predictions = []
+    for line in iter(process.stdout.readline, b""):
+        log_line = line.decode().strip()
+        logs.append(log_line)
 
-        # 模型路徑
-        model_dir = os.path.expanduser("~/Virtual_Measurement_System_model/Model_code/checkpoints")
-        model_path = os.path.join(model_dir, model_name + ".h5")
-
-        # 載入模型
-        msg = f"📂 載入模型 {model_name}.h5"
+        # 即時傳給前端
         async_to_sync(channel_layer.group_send)(
-            "deploying_group",
-            {"type": "deploying.log", "message": msg}
-        )
-        logger.info(msg)
-        model = load_model(model_path, compile=False)
-
-        # 預測資料
-        data_np = selected_df.to_numpy().reshape(-1, 9, 9, 1).astype(np.float32)
-        msg = f"▶️ 開始預測，共 {data_np.shape[0]} 筆資料"
-        async_to_sync(channel_layer.group_send)(
-            "deploying_group",
-            {"type": "deploying.log", "message": msg}
-        )
-        logger.info(msg)
-
-        predictions = model.predict(data_np, verbose=1)
-
-        for i, value in enumerate(predictions.flatten().round(3).tolist()):
-            log_line = f"[{i+1}] {value}"
-            logs.append(log_line)
-            async_to_sync(channel_layer.group_send)(
-                "deploying_group",
-                {"type": "deploying.log", "message": log_line}
-            )
-            logger.info(f"將訊息透過 redis 送到前端 DEPLOY/:{log_line}")
-        
-        pred_result = predictions.flatten().round(3).tolist()
-
-        # 預測完成通知
-        async_to_sync(channel_layer.group_send)(
-            "deploying_group",
-            {"type": "deploying.log", "message": f"✅ 完成預測，共 {len(pred_result)} 筆"}
+            "deploying_group",          # ✅ 對應前端 /ws/DEPLOY/
+            {
+                "type": "deploying.log",
+                "message": log_line
+            }
         )
 
-            # 傳送預測結果
+        # 如果抓到 RESULT:[...]
+        if log_line.startswith("RESULT:"):
+            try:
+                predictions = eval(log_line.replace("RESULT:", "").strip())
+            except:
+                predictions = []
+
+    # 6. 如果 stderr 有錯誤也推給前端
+    err = process.stderr.read().decode()
+    if err:
         async_to_sync(channel_layer.group_send)(
             "deploying_group",
-            {"type": "deploying.log", "message": f"結果: {pred_result}"}
+            {"type": "deploying.log", "message": "❌ Error: " + err}
         )
 
-        return {"status": "success", "predictions": pred_result}
+    # 7. 通知完成
+    async_to_sync(channel_layer.group_send)(
+        "deploying_group",
+        {"type": "deploying.log", "message": "__FINISHED__"}
+    )
 
-    except Exception as e:
-        async_to_sync(channel_layer.group_send)(
-            "deploying_group",
-            {"type": "deploying.log", "message": f"❌ Error: {str(e)}"}
-        )
-        return {"status": "error", "message": str(e)}
+    return {"status": "done", "predictions": predictions}

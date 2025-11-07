@@ -1,28 +1,34 @@
+# blog/urls.py
+"""
+    blog 應用的 URL 配置檔。
+"""
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+from django.shortcuts import redirect
 from django.urls import path
 from blog.view import *
 from blog.view.views import *
-from django.contrib.auth import views as auth_views
-from django.shortcuts import redirect
 
+# 用於在未登入/已登入時做導向
 def root_redirect(request):
     if request.user.is_authenticated:
-        return redirect('home')   # 已登入去 home
-    return redirect('login')      # 沒登入去 login
+        return redirect('home')   # 已登入 -> home
+    return redirect('login')      # 未登入 -> login
 
 urlpatterns = [
-    # 根路徑直接導向 login
-    # path('', lambda request: redirect('login'), name='root'),
+    # 根路徑：根據是否登入導向不同頁面
+    # 先前曾用 lambda 快速導向，改為具名函式便於擴充與除錯
     path('', root_redirect, name='root'),
 
+    # ---------- 認證與帳號相關 ----------
     path("login/", login_view, name="login"),
     path('logout/', logout_view, name='logout'),
     path("login_api/", login_api, name="login_api"),
     path("register/", register_view, name="register"),
     path("forgot_password/", forgot_password_view, name="forgot_password"),
 
-    # 密碼重設流程
+    # 密碼重設流程（採用 Django 內建 view，並指定 template）
     path(
         "password_reset/",
         auth_views.PasswordResetView.as_view(
@@ -40,6 +46,7 @@ urlpatterns = [
         ),
         name="password_reset_done",
     ),
+    # 自訂的密碼重設確認處理（使用自訂 view 而非內建 view）
     path(
         "reset/<uidb64>/<token>/",
         custom_password_reset_confirm,
@@ -53,33 +60,41 @@ urlpatterns = [
         name="password_reset_complete",
     ),
 
-    
+    # ---------- 主畫面 ----------
     path("home/", home_view, name="home"),
-    # 模型相關
+
+    # ---------- 任務與模型相關（API 與頁面） ----------
+    # 取得任務列表狀態（例如 Celery 任務）
     path("api/tasks/", tasks_status, name="tasks_status"),
     path("task/<str:task_id>/", Celery_task_status, name="task_status"),
 
-    path("train/", train_view, name="train"),
-    path("api/train/", train_api, name="train_api"),
+    # 訓練相關頁面與 API
+    path("train/", train_view, name="model_train_view"),
+    path("api/train/", train_api, name="model_train_api"),
 
-    path("test/", test_view, name="test"),
+    # 測試相關（頁面 + 多個 API）
+    path("test/", test_view, name="model_test_view"),
+    path("api/test/", test_api, name="model_test_api"),
     path("api/test_list_checkpoints/", test_list_checkpoints, name="test_list_checkpoints"),
-    path("api/test_api/", test_api, name="test_api"),
     path("api/post_test_images/", post_test_images, name="post_test_images"),
     path("api/get_test_image/<str:model_name>/<str:filename>", get_test_image, name="get_test_image"),
 
-    path("models/", manage_models, name="models"),
+    # 模型管理（列出模型、刪除/重新命名檔案等）
+    path("manage/", manage_models, name="model_manage_view"),
     path("api/list_checkpoint/", list_checkpoint, name="list_checkpoint"),
     path("api/delete_local_weights/", delete_local_weights, name="delete_local_weights"),
     path("api/rename_checkpoint/", rename_checkpoint, name="rename_checkpoint"),
 
-    path("model_deploy/", model_deploy, name="model_deploy"),
-    path("download_sample/", download_random_100, name="download_sample"),
+    # 部署相關
+    path("deploy/", model_deploy, name="model_deploy_view"),
+    path("api/predict/", predict_api, name="model_predict_api"),
+    path("api/download_sample/", download_random_100, name="download_sample"),
     path("api/deploy_list_checkpoints/", deploy_list_checkpoints, name="deploy_list_checkpoints"),
     path("api/import_npy/", import_npy, name="import_npy"),
-    path("api/predict/", predict_api, name="predict_model"),
+    
 
-    path("data_analysis/", data_analysis, name="data_analysis"),
+    # 資料分析頁面與相關 API
+    path("data_analysis/", data_analysis, name="data_analysis_view"),
     path("api/list_model_names/", list_model_names, name="list_model_names"),
     path("api/get_model_images/", get_model_images, name="get_model_images"),
     path("api/download_model/", download_model, name="download_model"),

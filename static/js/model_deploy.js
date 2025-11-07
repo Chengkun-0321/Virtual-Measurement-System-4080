@@ -75,6 +75,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.value));
         const modelName = document.getElementById('model-select').value;
 
+        const predictBtn = document.getElementById('predict-btn');
+        predictBtn.disabled = true;
+        predictBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> 預測中...`;
+
         fetch('/api/predict/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -86,6 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.log("預測任務已提交，等待 WebSocket 推送結果...");
             } else {
                 alert("預測失敗：" + (data.error || "未知錯誤"));
+                resetPredictBtn();
             }
         })
         .catch(err => {
@@ -98,8 +103,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const msg = event.data;
 
         // 如果是預測結果
-        if (msg.startsWith("結果:")) {
-            const raw = msg.replace("結果: ", "").trim();
+        if (msg.startsWith("RESULT:")) {
+            const raw = msg.replace("RESULT:", "").trim();
             const predictions = JSON.parse(raw.replace(/'/g, '"')); // 把字串轉成 Array
             console.log("收到預測結果:", predictions);
 
@@ -117,10 +122,19 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             logBox.innerHTML = `<strong>✅ 預測完成，共 ${predictions.length} 筆資料。</strong>`;
+
+            resetPredictBtn();
+        }else if (msg === "__FINISHED__") {
+            resetPredictBtn();
         } else {
-            // 普通 log 訊息（例如 "載入模型..."、"開始預測..."）
             const logDiv = document.getElementById('deploy-log');
             logDiv.innerHTML += msg + "<br>";
         }
     };
+
+    function resetPredictBtn() {
+        const predictBtn = document.getElementById('predict-btn');
+        predictBtn.disabled = false;
+        predictBtn.innerHTML = "執行預測";
+    }
 });

@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
 
         // 先打 REST API 確認參數
-        let resp = await fetch("/api/test_api/", {
+        let resp = await fetch("/api/test/", {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
             body: JSON.stringify(payload)
