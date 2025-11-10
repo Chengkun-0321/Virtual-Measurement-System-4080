@@ -68,29 +68,28 @@ urlpatterns = [
     path("api/tasks/", tasks_status, name="tasks_status"),
     path("task/<str:task_id>/", Celery_task_status, name="task_status"),
 
-    # 訓練相關頁面與 API
+    # 模型訓練頁面與相關 API
     path("train/", train_view, name="model_train_view"),
     path("api/train/", train_api, name="model_train_api"),
 
-    # 測試相關（頁面 + 多個 API）
+    # 模型測試頁面與相關 API
     path("test/", test_view, name="model_test_view"),
     path("api/test/", test_api, name="model_test_api"),
     path("api/test_list_checkpoints/", test_list_checkpoints, name="test_list_checkpoints"),
     path("api/post_test_images/", post_test_images, name="post_test_images"),
-    path("api/get_test_image/<str:model_name>/<str:filename>", get_test_image, name="get_test_image"),
 
-    # 模型管理（列出模型、刪除/重新命名檔案等）
+    # 模型管理頁面（列出、刪除、重新命名 權重功能）
     path("manage/", manage_models, name="model_manage_view"),
     path("api/list_checkpoint/", list_checkpoint, name="list_checkpoint"),
-    path("api/delete_local_weights/", delete_local_weights, name="delete_local_weights"),
+    path("api/delete_checkpoint/", delete_checkpoint, name="delete_checkpoint"),
     path("api/rename_checkpoint/", rename_checkpoint, name="rename_checkpoint"),
 
-    # 部署相關
+    # 模型部署頁面與相關 API
     path("deploy/", model_deploy, name="model_deploy_view"),
     path("api/predict/", predict_api, name="model_predict_api"),
     path("api/download_sample/", download_random_100, name="download_sample"),
     path("api/deploy_list_checkpoints/", deploy_list_checkpoints, name="deploy_list_checkpoints"),
-    path("api/import_npy/", import_npy, name="import_npy"),
+    path("api/import_data/", import_data, name="import_data"),
     
 
     # 資料分析頁面與相關 API

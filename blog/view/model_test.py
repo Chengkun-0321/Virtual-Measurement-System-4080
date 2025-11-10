@@ -45,10 +45,12 @@ def test_api(request):
         "message": f"已提交測試: 模型={data.get('model')}, 資料集={data.get('dataset')}, checkpoint={data.get('checkpoint')}"
     })
 
-@csrf_exempt
-@require_POST
+@require_GET
 def test_list_checkpoints(request):
-    """回傳 checkpoints 底下的所有 .h5 權重檔"""
+    """回傳 checkpoints 底下的所有 .h5 權重檔。
+
+    改為使用 GET：用戶端可以直接以瀏覽器或 AJAX 的 GET 請求取得清單。
+    """
     try:
         checkpoints = [
             f.replace(".h5", "") for f in os.listdir(MODEL_DIR) if f.endswith(".h5")
@@ -71,11 +73,3 @@ def post_test_images(request):
             "ground_truth": f"/api/get_test_image/{model_name}/ground_truth.png"
         }
     })
-
-@require_GET
-def get_test_image(request, model_name, filename):
-    """回傳圖片檔案"""
-    file_path = os.path.join(IMG_DIR, model_name, filename)
-    if not os.path.exists(file_path):
-        raise Http404("Image not found")
-    return FileResponse(open(file_path, "rb"), content_type="image/png")

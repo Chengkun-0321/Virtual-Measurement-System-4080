@@ -6,7 +6,7 @@ from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_POST, require_GET, require_http_methods
 
 def manage_models(request):
     return render(request, 'blog/model_manage.html')
@@ -63,8 +63,8 @@ def list_checkpoint(request):
 
 # 刪除本機模型檔案 (POST)
 @csrf_exempt
-@require_POST
-def delete_local_weights(request):
+@require_http_methods(["DELETE"])
+def delete_checkpoint(request):
     try:
         data = json.loads(request.body)
         filenames = data.get("filenames", [])
@@ -92,7 +92,7 @@ def delete_local_weights(request):
 
 # 重新命名本機模型檔案 (POST)
 @csrf_exempt
-@require_POST
+@require_http_methods(["PUT"])
 def rename_checkpoint(request):
     try:
         data = json.loads(request.body)

@@ -12,9 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // 載入可用的 checkpoints
-    fetch("/api/test_list_checkpoints/", {
-        method: "POST"
-    })
+    fetch("/api/test_list_checkpoints/")
     .then(res => res.json())
     .then(data => {
         checkpointSelect.innerHTML = "";

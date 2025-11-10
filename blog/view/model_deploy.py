@@ -69,7 +69,7 @@ def download_random_100(request):
 
 @csrf_exempt
 @require_POST
-def import_npy(request):
+def import_data(request):
     global uploaded_data  # ← 必加
     if request.method == 'POST' and request.FILES.get('file'):
         npy_file = request.FILES['file']

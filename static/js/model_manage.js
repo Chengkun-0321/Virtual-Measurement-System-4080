@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const newName = prompt("請輸入新的模型名稱（不含副檔名）", oldName);
             if (newName && newName !== oldName) {
                 let resp = await fetch("/api/rename_checkpoint/", {
-                    method: "POST",
+                    method: "PUT",
                     headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
                     body: JSON.stringify({ old_name: oldName, new_name: newName })
                 });
@@ -93,8 +93,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if (e.target.classList.contains("delete-btn")) {
             const filename = e.target.getAttribute("data-name");
             if (confirm(`確定要刪除模型「${filename}.h5」嗎？`)) {
-                let resp = await fetch("/api/delete_local_weights/", {
-                    method: "POST",
+                let resp = await fetch("/api/delete_checkpoint/", {
+                    method: "DELETE",
                     headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
                     body: JSON.stringify({ filenames: [filename] })
                 });

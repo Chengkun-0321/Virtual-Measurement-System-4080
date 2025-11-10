@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         const formData = new FormData(this);
 
-        fetch('/api/import_npy/', {
+        fetch('/api/import_data/', {
             method: 'POST',
             body: formData
         })
